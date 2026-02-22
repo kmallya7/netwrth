@@ -1,6 +1,22 @@
 // js/ui.js
 // ─── UI Utilities: Navigation, Modals, Toasts, Dark Mode ─────────────────
 
+// ── Sidebar Collapse Toggle ───────────────────────────────────────────────
+const sidebar       = document.getElementById("sidebar");
+const sidebarToggle = document.getElementById("sidebarToggle");
+
+if (localStorage.getItem("netwrth-sidebar") === "collapsed") {
+  sidebar.classList.add("collapsed");
+}
+
+sidebarToggle.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+  localStorage.setItem(
+    "netwrth-sidebar",
+    sidebar.classList.contains("collapsed") ? "collapsed" : "expanded"
+  );
+});
+
 // ── Section Navigation ─────────────────────────────────────────────────────
 const navLinks   = document.querySelectorAll(".nav-link");
 const sections   = document.querySelectorAll(".section");
@@ -14,9 +30,11 @@ const sectionTitles = {
   investments: "Investments",
   debts:       "Debts & Loans",
   reports:     "Reports & Export",
+  accounts:    "Accounts",
+  categories:  "Categories",
 };
 
-function showSection(id) {
+export function showSection(id) {
   sections.forEach(s   => s.classList.add("hidden"));
   navLinks.forEach(l   => l.classList.remove("active"));
 
@@ -28,6 +46,9 @@ function showSection(id) {
 
   pageTitle.textContent = sectionTitles[id] || id;
 }
+
+// Global navigation helper (used by dashboard widgets + inline onclick)
+window._navigateTo = showSection;
 
 navLinks.forEach(link => {
   link.addEventListener("click", (e) => {
@@ -48,13 +69,25 @@ if (subtitle) {
 }
 
 // ── Modals ────────────────────────────────────────────────────────────────
-function openModal(id) {
+export function openModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.remove("hidden");
+  if (!modal) return;
+  // Remove any prior animation state and hidden
+  modal.classList.remove("hidden", "is-closing", "is-opening");
+  // Force reflow so animation restarts correctly
+  void modal.offsetWidth;
+  modal.classList.add("is-opening");
 }
 
-function closeAllModals() {
-  document.querySelectorAll(".modal-overlay").forEach(m => m.classList.add("hidden"));
+export function closeAllModals() {
+  document.querySelectorAll(".modal-overlay:not(.hidden)").forEach(modal => {
+    modal.classList.remove("is-opening");
+    modal.classList.add("is-closing");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.classList.remove("is-closing");
+    }, 180); // matches modalOverlayOut duration
+  });
 }
 
 document.querySelectorAll(".open-modal").forEach(btn => {
@@ -71,37 +104,103 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
   });
 });
 
-// Quick Add button
+// ── Quick Add Tabs ────────────────────────────────────────────────────────
+const quickExpenseTab     = document.getElementById("quickExpenseTab");
+const quickIncomeTab      = document.getElementById("quickIncomeTab");
+const quickTypeInput      = document.querySelector('#quickAddForm input[name="type"]');
+const quickDescInput      = document.getElementById("quickDescription");
+const quickCatLabel       = document.getElementById("quickCatLabel");
+const quickCategorySelect = document.getElementById("quickCategorySelect");
+const quickSubmitBtn      = document.getElementById("quickSubmitBtn");
+
+const expenseCategoryOptions = `
+  <option>Food & Dining</option>
+  <option>Transport</option>
+  <option>Shopping</option>
+  <option>Bills & Utilities</option>
+  <option>Health</option>
+  <option>Entertainment</option>
+  <option>Education</option>
+  <option>Other</option>
+`;
+
+const incomeTypeOptions = `
+  <option>Salary</option>
+  <option>Freelance</option>
+  <option>Business</option>
+  <option>Investment Returns</option>
+  <option>Gift</option>
+  <option>Other</option>
+`;
+
+function setExpenseTab() {
+  quickExpenseTab.classList.add("active");
+  quickIncomeTab.classList.remove("active");
+  quickTypeInput.value       = "expense";
+  quickDescInput.placeholder = "What did you spend on?";
+  quickCatLabel.textContent  = "Category";
+  if (window._populateSelect) {
+    window._populateSelect(quickCategorySelect, "expense");
+  } else {
+    quickCategorySelect.innerHTML = expenseCategoryOptions;
+  }
+  quickSubmitBtn.textContent = "Save Expense";
+}
+
+function setIncomeTab() {
+  quickIncomeTab.classList.add("active");
+  quickExpenseTab.classList.remove("active");
+  quickTypeInput.value       = "income";
+  quickDescInput.placeholder = "Where did this come from?";
+  quickCatLabel.textContent  = "Type";
+  if (window._populateSelect) {
+    window._populateSelect(quickCategorySelect, "income");
+  } else {
+    quickCategorySelect.innerHTML = incomeTypeOptions;
+  }
+  quickSubmitBtn.textContent = "Save Income";
+}
+
+quickExpenseTab.addEventListener("click", setExpenseTab);
+quickIncomeTab.addEventListener("click", setIncomeTab);
+
+// Quick Add button — reset to expense tab + today's date
 document.getElementById("quickAddBtn").addEventListener("click", () => {
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("quickDate").value = today;
+  setExpenseTab();
+  document.getElementById("quickDate").value = new Date().toISOString().split("T")[0];
   openModal("quickAddModal");
 });
 
-export { openModal, closeAllModals };
-
-// ── Quick Add Tabs ────────────────────────────────────────────────────────
-const quickExpenseTab = document.getElementById("quickExpenseTab");
-const quickIncomeTab  = document.getElementById("quickIncomeTab");
-const quickTypeInput  = document.querySelector('#quickAddForm input[name="type"]');
-const quickDescLabel  = document.getElementById("quickDescLabel");
-const quickCatGroup   = document.getElementById("quickCategoryGroup");
-
-quickExpenseTab.addEventListener("click", () => {
-  quickExpenseTab.classList.add("active");
-  quickIncomeTab.classList.remove("active");
-  quickTypeInput.value    = "expense";
-  quickDescLabel.textContent = "Description";
-  quickCatGroup.classList.remove("hidden");
-});
-
-quickIncomeTab.addEventListener("click", () => {
-  quickIncomeTab.classList.add("active");
-  quickExpenseTab.classList.remove("active");
-  quickTypeInput.value    = "income";
-  quickDescLabel.textContent = "Source";
-  quickCatGroup.classList.add("hidden");
-});
+// ── Two-click Soft Delete ────────────────────────────────────────────────
+// First click: button turns red and shows "delete?". Second click within 3s
+// executes the delete. Timer reset cancels it if user changes their mind.
+window._softDelete = function(btn) {
+  if (btn.dataset.confirming === "1") {
+    clearTimeout(parseInt(btn.dataset.timer));
+    const id   = btn.dataset.id;
+    const type = btn.dataset.type;
+    const fns  = {
+      expense:    window._deleteExpense,
+      income:     window._deleteIncome,
+      investment: window._deleteInvestment,
+      debt:       window._deleteDebt,
+      budget:     window._deleteBudget,
+      goal:       window._deleteGoal,
+      account:    window._deleteAccount,
+      category:   window._deleteCategory,
+    };
+    fns[type]?.(id);
+    return;
+  }
+  btn.dataset.confirming = "1";
+  btn.textContent = "delete?";
+  btn.classList.add("confirming");
+  btn.dataset.timer = String(setTimeout(() => {
+    btn.dataset.confirming = "";
+    btn.textContent = "✕";
+    btn.classList.remove("confirming");
+  }, 3000));
+};
 
 // ── Toast Notifications ───────────────────────────────────────────────────
 let toastTimer = null;
@@ -124,14 +223,22 @@ export function showToast(message, type = "success") {
 const darkToggle = document.getElementById("darkModeToggle");
 const html       = document.documentElement;
 
+function updateThemeIcon() {
+  const isDark = html.classList.contains("dark");
+  darkToggle.textContent = isDark ? "☀" : "☾";
+  darkToggle.title       = isDark ? "Switch to light mode" : "Switch to dark mode";
+}
+
 // Load saved preference
 if (localStorage.getItem("netwrth-theme") === "light") {
   html.classList.remove("dark");
 }
+updateThemeIcon();
 
 darkToggle.addEventListener("click", () => {
   html.classList.toggle("dark");
   localStorage.setItem("netwrth-theme", html.classList.contains("dark") ? "dark" : "light");
+  updateThemeIcon();
 });
 
 // ── Format currency ───────────────────────────────────────────────────────
