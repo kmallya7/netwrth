@@ -1,0 +1,108 @@
+/* src/input.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+
+  /* ── Sidebar Nav Links ────────────────────────────────────────────────── */
+  .nav-link {
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-neutral-400
+           hover:text-neutral-100 hover:bg-neutral-800 transition-all cursor-pointer;
+  }
+  .nav-link.active {
+    @apply text-neutral-100 bg-neutral-800;
+  }
+  .nav-icon {
+    @apply text-base w-5 text-center shrink-0;
+  }
+
+  /* ── Cards ────────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-neutral-900 border border-neutral-800 rounded-2xl p-4;
+  }
+  .card-title {
+    @apply text-sm font-semibold text-neutral-300;
+  }
+
+  /* ── Stat Cards ───────────────────────────────────────────────────────── */
+  .stat-card {
+    @apply card space-y-1;
+  }
+  .stat-label {
+    @apply text-xs text-neutral-500 font-medium uppercase tracking-wide;
+  }
+  .stat-value {
+    @apply text-2xl font-mono font-semibold;
+  }
+  .stat-delta {
+    @apply text-xs text-neutral-500;
+  }
+  .stat-delta.positive { @apply text-emerald-500; }
+  .stat-delta.negative { @apply text-red-400; }
+
+  /* ── Buttons ──────────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400
+           text-neutral-950 text-sm font-semibold transition;
+  }
+  .btn-secondary {
+    @apply px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700
+           text-neutral-200 text-sm font-medium transition border border-neutral-700;
+  }
+
+  /* ── Form Elements ────────────────────────────────────────────────────── */
+  .form-group { @apply flex flex-col gap-1.5; }
+  .form-label { @apply text-xs font-medium text-neutral-400; }
+  .form-input {
+    @apply w-full px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700
+           text-sm text-neutral-100 placeholder-neutral-600
+           focus:outline-none focus:ring-1 focus:ring-emerald-500 transition;
+  }
+  .select-input {
+    @apply px-3 py-2 rounded-lg bg-neutral-800 border border-neutral-700
+           text-sm text-neutral-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition;
+  }
+
+  /* ── Modals ───────────────────────────────────────────────────────────── */
+  .modal-overlay {
+    @apply fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4;
+  }
+  .modal-box {
+    @apply w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl;
+  }
+  .modal-header {
+    @apply flex items-center justify-between px-5 py-4 border-b border-neutral-800;
+  }
+  .modal-title {
+    @apply text-base font-semibold;
+  }
+  .modal-close {
+    @apply text-neutral-500 hover:text-neutral-100 transition text-sm;
+  }
+  .modal-body {
+    @apply px-5 py-4;
+  }
+  .modal-footer {
+    @apply flex justify-end gap-3 pt-2;
+  }
+
+  /* ── Tables ───────────────────────────────────────────────────────────── */
+  .table-row {
+    @apply border-b border-neutral-800/50 hover:bg-neutral-800/30 transition;
+  }
+
+  /* ── Badges ───────────────────────────────────────────────────────────── */
+  .category-badge {
+    @apply inline-block px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-400 text-xs;
+  }
+
+  /* ── Tab Buttons ──────────────────────────────────────────────────────── */
+  .tab-btn {
+    @apply py-2 rounded-lg text-sm font-medium text-neutral-400 bg-neutral-800
+           hover:text-neutral-100 transition;
+  }
+  .tab-btn.active {
+    @apply text-neutral-950 bg-emerald-500;
+  }
+}

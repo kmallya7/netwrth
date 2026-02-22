@@ -1,0 +1,15 @@
+{
+  "name": "netwrth",
+  "version": "1.0.0",
+  "description": "Personal Finance Command Center",
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "dev":   "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  },
+  "author": "Karthick Mallya",
+  "license": "UNLICENSED",
+  "private": true
+}
