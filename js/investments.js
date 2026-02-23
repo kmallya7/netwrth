@@ -7,8 +7,8 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp }
 import { getCurrentUid }                                                 from "./auth.js";
 import { showToast, formatINR, openModal, closeAllModals }              from "./ui.js";
 
-let allInvestments      = [];
-let editingInvestmentId = null;
+export let allInvestments = [];
+let editingInvestmentId   = null;
 
 function investmentsCol(uid) { return collection(db, "users", uid, "investments"); }
 
@@ -21,6 +21,7 @@ export async function loadInvestments() {
   allInvestments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderInvestmentsTable(allInvestments);
   updateInvestmentSummary(allInvestments);
+  window.dispatchEvent(new CustomEvent("netwrth:dataChanged"));
   return allInvestments;
 }
 

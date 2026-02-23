@@ -4,6 +4,8 @@
 import { formatINR, openModal, closeAllModals } from "./ui.js";
 import { allExpenses }                           from "./expenses.js";
 import { allIncome }                             from "./income.js";
+import { allInvestments }                        from "./investments.js";
+import { allDebts }                              from "./debts.js";
 
 // ── Per-card filter state ──────────────────────────────────────────────────
 // mode: 'allTime' | 'cycle' | 'pastDays' | 'dateRange'
@@ -355,6 +357,231 @@ window._applyPeriodFilter = function () {
   refreshDashboard();
 };
 
+// ── Widget visibility (show/hide, persisted to localStorage) ──────────────
+const WIDGET_KEYS = ['recent-transactions', 'budget-overview', 'cashflow-chart', 'investment-widget', 'debt-widget', 'top-spending'];
+const DEFAULT_VIS = Object.fromEntries(WIDGET_KEYS.map(k => [k, true]));
+
+function _loadVis() {
+  try { return { ...DEFAULT_VIS, ...JSON.parse(localStorage.getItem('netwrth:widgets') || '{}') }; }
+  catch { return { ...DEFAULT_VIS }; }
+}
+
+let widgetVisibility = _loadVis();
+
+function applyWidgetVisibility() {
+  WIDGET_KEYS.forEach(id => {
+    const el = document.querySelector(`[data-widget="${id}"]`);
+    if (el) el.classList.toggle('hidden', !widgetVisibility[id]);
+  });
+  document.querySelectorAll('.widget-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', widgetVisibility[btn.dataset.widget] !== false);
+  });
+}
+
+window._toggleWidget = function (btn) {
+  const id = btn.dataset.widget;
+  widgetVisibility[id] = !widgetVisibility[id];
+  localStorage.setItem('netwrth:widgets', JSON.stringify(widgetVisibility));
+  applyWidgetVisibility();
+};
+
+window._toggleCustomizePanel = function () {
+  document.getElementById('customizePanel')?.classList.toggle('hidden');
+};
+
+// ── Compact number format for chart axis ──────────────────────────────────
+function compactINR(v) {
+  if (!v) return '₹0';
+  if (v >= 1e7) return `₹${(v / 1e7).toFixed(1)}Cr`;
+  if (v >= 1e5) return `₹${(v / 1e5).toFixed(1)}L`;
+  if (v >= 1e3) return `₹${Math.round(v / 1e3)}K`;
+  return `₹${Math.round(v)}`;
+}
+
+// ── Cash Flow Chart (SVG, last 12 months) ─────────────────────────────────
+function renderCashFlowChart() {
+  const el = document.getElementById('cashFlowChart');
+  if (!el) return;
+
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ label: d.toLocaleDateString('en-IN', { month: 'short' }), year: d.getFullYear(), month: d.getMonth(), income: 0, expense: 0, isCurrent: i === 0 });
+  }
+
+  allIncome.forEach(item => {
+    const d = toDate(item);
+    const m = months.find(m => m.year === d.getFullYear() && m.month === d.getMonth());
+    if (m) m.income += item.amount || 0;
+  });
+  allExpenses.forEach(item => {
+    const d = toDate(item);
+    const m = months.find(m => m.year === d.getFullYear() && m.month === d.getMonth());
+    if (m) m.expense += item.amount || 0;
+  });
+
+  const maxVal = Math.max(...months.map(m => Math.max(m.income, m.expense)), 1);
+  const isDark  = document.documentElement.classList.contains('dark');
+  const gridClr = isDark ? '#262626' : '#e4e4e7';
+  const axisClr = isDark ? '#404040' : '#d4d4d8';
+  const txtClr  = isDark ? '#525252' : '#a1a1aa';
+  const curClr  = isDark ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.025)';
+
+  const W = 600, padL = 44, padR = 8, padTop = 8, padBot = 28;
+  const chartH = 130, H = padTop + chartH + padBot;
+  const chartW = W - padL - padR;
+  const colW   = chartW / 12;
+  const barW   = Math.max(colW * 0.33, 4);
+  const gap    = colW * 0.05;
+
+  const bx = (i, side) => padL + i * colW + (colW - 2 * barW - gap) / 2 + side * (barW + gap);
+  const bh = val => Math.max((val / maxVal) * chartH, val > 0 ? 2 : 0);
+  const by = val => padTop + chartH - bh(val);
+
+  const grids = [0.25, 0.5, 0.75, 1].map(pct => {
+    const y = padTop + chartH - pct * chartH;
+    return `<line x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}" stroke="${gridClr}" stroke-width="1"/>
+            <text x="${padL - 4}" y="${y + 3.5}" text-anchor="end" font-size="7.5" fill="${txtClr}">${compactINR(maxVal * pct)}</text>`;
+  }).join('');
+
+  const bars = months.map((m, i) => {
+    const cx = padL + i * colW + colW / 2;
+    const curHL = m.isCurrent ? `<rect x="${padL + i * colW + 1}" y="${padTop}" width="${colW - 2}" height="${chartH}" fill="${curClr}" rx="3"/>` : '';
+    return `${curHL}
+      <rect x="${bx(i, 0)}" y="${by(m.income)}"  width="${barW}" height="${bh(m.income)}"  rx="2" fill="rgba(52,211,153,0.75)"/>
+      <rect x="${bx(i, 1)}" y="${by(m.expense)}" width="${barW}" height="${bh(m.expense)}" rx="2" fill="rgba(248,113,113,0.65)"/>
+      <text x="${cx}" y="${H - 8}" text-anchor="middle" font-size="7.5" fill="${m.isCurrent ? (isDark ? '#a3a3a3' : '#71717a') : txtClr}">${m.label}</text>`;
+  }).join('');
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${padL}" x2="${padL}" y1="${padTop}" y2="${padTop + chartH}" stroke="${gridClr}" stroke-width="1"/>
+    <line x1="${padL}" x2="${W - padR}" y1="${padTop + chartH}" y2="${padTop + chartH}" stroke="${axisClr}" stroke-width="1"/>
+    ${grids}${bars}
+  </svg>`;
+}
+
+// ── Investment Snapshot ────────────────────────────────────────────────────
+function renderInvestmentWidget() {
+  const el = document.getElementById('investmentWidget');
+  if (!el) return;
+
+  if (!allInvestments.length) {
+    el.innerHTML = `<p class="text-sm text-neutral-500">No investments added. <span class="text-emerald-400 hover:underline cursor-pointer" onclick="window._navigateTo('investments')">Add one →</span></p>`;
+    return;
+  }
+
+  const totalValue    = allInvestments.reduce((s, i) => s + (i.currentValue || 0), 0);
+  const totalInvested = allInvestments.reduce((s, i) => s + (i.invested    || 0), 0);
+  const gain          = totalValue - totalInvested;
+  const gainPct       = totalInvested ? ((gain / totalInvested) * 100).toFixed(1) : '0.0';
+  const gainCls       = gain >= 0 ? 'text-emerald-400' : 'text-red-400';
+
+  const byType = {};
+  allInvestments.forEach(i => { byType[i.type] = (byType[i.type] || 0) + (i.currentValue || 0); });
+  const sorted = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  el.innerHTML = `
+    <div class="flex justify-between items-start mb-3">
+      <div>
+        <p class="text-xl font-mono font-bold">${formatINR(totalValue)}</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Portfolio value</p>
+      </div>
+      <div class="text-right">
+        <p class="font-mono text-sm font-semibold ${gainCls}">${gain >= 0 ? '+' : ''}${formatINR(gain)}</p>
+        <p class="text-xs text-neutral-500">${gain >= 0 ? '+' : ''}${gainPct}% return</p>
+      </div>
+    </div>
+    <div class="space-y-1">
+      ${sorted.map(([type, val]) => {
+        const pct = Math.round((val / totalValue) * 100);
+        return `<div class="exp-breakdown-row">
+          <div class="exp-breakdown-info">
+            <span class="exp-breakdown-cat">${type}</span>
+            <span class="exp-breakdown-meta text-emerald-400">${pct}%</span>
+          </div>
+          <div class="exp-breakdown-track rounded-full">
+            <div class="budget-bar h-full rounded-full bg-emerald-500/60" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── Debt Snapshot ─────────────────────────────────────────────────────────
+function renderDebtWidget() {
+  const el = document.getElementById('debtWidget');
+  if (!el) return;
+
+  if (!allDebts.length) {
+    el.innerHTML = `<p class="text-sm text-neutral-500">No debts recorded. <span class="text-emerald-400 hover:underline cursor-pointer" onclick="window._navigateTo('debts')">Add one →</span></p>`;
+    return;
+  }
+
+  const totalOwed     = allDebts.reduce((s, d) => s + (d.remaining || 0), 0);
+  const totalOriginal = allDebts.reduce((s, d) => s + (d.total     || 0), 0);
+  const pct           = totalOriginal ? Math.round(((totalOriginal - totalOwed) / totalOriginal) * 100) : 0;
+  const top           = [...allDebts].sort((a, b) => (b.remaining || 0) - (a.remaining || 0)).slice(0, 3);
+
+  el.innerHTML = `
+    <div class="flex justify-between items-start mb-2">
+      <div>
+        <p class="text-xl font-mono font-bold text-red-400">${formatINR(totalOwed)}</p>
+        <p class="text-xs text-neutral-500 mt-0.5">Total outstanding</p>
+      </div>
+      <div class="text-right">
+        <p class="font-mono text-sm font-semibold text-emerald-400">${pct}%</p>
+        <p class="text-xs text-neutral-500">paid off</p>
+      </div>
+    </div>
+    <div class="h-1.5 rounded-full bg-neutral-800 overflow-hidden mb-3 budget-bar-track">
+      <div class="h-full rounded-full bg-emerald-500/70 budget-bar" style="width:${pct}%"></div>
+    </div>
+    <div class="space-y-2">
+      ${top.map(d => {
+        const dpct = d.total ? Math.round(((d.total - d.remaining) / d.total) * 100) : 0;
+        return `<div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="truncate text-neutral-300">${d.name}</span>
+            <span class="font-mono text-red-400 shrink-0 ml-2">${formatINR(d.remaining)}</span>
+          </div>
+          <div class="h-1 rounded-full bg-neutral-800 overflow-hidden budget-bar-track">
+            <div class="h-full rounded-full bg-emerald-500/60 budget-bar" style="width:${dpct}%"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── Top Spending ───────────────────────────────────────────────────────────
+function renderTopSpending() {
+  const el = document.getElementById('topSpendingWidget');
+  if (!el) return;
+
+  const range    = getDateRange(cardFilters.expenses);
+  const expenses = filterByRange(allExpenses, range).sort((a, b) => b.amount - a.amount).slice(0, 5);
+
+  if (!expenses.length) {
+    el.innerHTML = `<p class="text-sm text-neutral-500">No expenses this period.</p>`;
+    return;
+  }
+
+  const maxAmt = expenses[0].amount;
+  el.innerHTML = expenses.map((e, i) => `
+    <div class="flex items-center gap-2.5 py-1.5 cursor-pointer hover:bg-neutral-800/30 rounded-lg px-1.5 -mx-1.5 transition"
+         onclick="window._editExpense('${e.id}')">
+      <span class="text-neutral-600 font-mono text-xs w-3 shrink-0">${i + 1}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium truncate">${e.description || '—'}</p>
+        <p class="text-xs text-neutral-500">${e.category || ''}</p>
+        <div class="mt-1 h-0.5 rounded-full bg-neutral-800 overflow-hidden">
+          <div class="h-full rounded-full bg-red-400/60" style="width:${Math.round((e.amount / maxAmt) * 100)}%"></div>
+        </div>
+      </div>
+      <span class="font-mono text-sm text-red-400 shrink-0">${formatINR(e.amount)}</span>
+    </div>`).join('');
+}
+
 // ── Show detail modal for a card ──────────────────────────────────────────
 window._showCardDetail = function (cardKey) {
   const filter     = cardFilters[cardKey];
@@ -592,6 +819,13 @@ export function refreshDashboard() {
 
   // ── Update filter button labels ──────────────────────────────────────
   updateAllFilterBtns();
+
+  // ── New widgets ───────────────────────────────────────────────────────
+  renderCashFlowChart();
+  renderInvestmentWidget();
+  renderDebtWidget();
+  renderTopSpending();
+  applyWidgetVisibility();
 
   // ── Recent transactions (latest 8, expense + income merged) ─────────
   const allTx = [

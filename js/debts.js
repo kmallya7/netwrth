@@ -7,8 +7,8 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp }
 import { getCurrentUid }                                                 from "./auth.js";
 import { showToast, formatINR, openModal, closeAllModals }              from "./ui.js";
 
-let allDebts     = [];
-let editingDebtId = null;
+export let allDebts = [];
+let editingDebtId   = null;
 
 function debtsCol(uid) { return collection(db, "users", uid, "debts"); }
 
@@ -21,6 +21,7 @@ export async function loadDebts() {
   allDebts   = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderDebtsList(allDebts);
   updateDebtSummary(allDebts);
+  window.dispatchEvent(new CustomEvent("netwrth:dataChanged"));
   return allDebts;
 }
 

@@ -136,6 +136,29 @@
 
       <!-- DASHBOARD -->
       <section id="section-dashboard" class="section p-6 space-y-6">
+
+        <!-- Customize bar -->
+        <div class="flex justify-end">
+          <button onclick="window._toggleCustomizePanel()"
+                  class="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition px-3 py-1.5 rounded-lg hover:bg-neutral-800/50">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
+            Customize
+          </button>
+        </div>
+
+        <!-- Customize panel -->
+        <div id="customizePanel" class="hidden card py-3 px-4">
+          <p class="text-xs font-medium text-neutral-500 uppercase tracking-widest mb-3">Show / Hide Widgets</p>
+          <div class="flex flex-wrap gap-2">
+            <button class="widget-toggle-btn active" data-widget="recent-transactions" onclick="window._toggleWidget(this)">Recent Transactions</button>
+            <button class="widget-toggle-btn active" data-widget="budget-overview"     onclick="window._toggleWidget(this)">Budget Overview</button>
+            <button class="widget-toggle-btn active" data-widget="cashflow-chart"      onclick="window._toggleWidget(this)">Cash Flow</button>
+            <button class="widget-toggle-btn active" data-widget="investment-widget"   onclick="window._toggleWidget(this)">Investments</button>
+            <button class="widget-toggle-btn active" data-widget="debt-widget"         onclick="window._toggleWidget(this)">Debts</button>
+            <button class="widget-toggle-btn active" data-widget="top-spending"        onclick="window._toggleWidget(this)">Top Spending</button>
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
           <!-- Net Worth -->
@@ -189,13 +212,13 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="card">
+          <div class="card" data-widget="recent-transactions">
             <h3 class="card-title">Recent Transactions</h3>
             <div id="recentTransactions" class="space-y-2 mt-3">
               <p class="text-sm text-neutral-500">No transactions yet.</p>
             </div>
           </div>
-          <div class="card">
+          <div class="card" data-widget="budget-overview">
             <div class="flex items-center justify-between">
               <h3 class="card-title">Budget Overview</h3>
               <button onclick="window._navigateTo('budgets')"
@@ -205,6 +228,59 @@
               <p class="text-sm text-neutral-500">No budgets set.</p>
             </div>
           </div>
+        </div>
+
+        <!-- Cash Flow Chart -->
+        <div class="card" data-widget="cashflow-chart">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="card-title">Cash Flow · Last 12 Months</h3>
+            <div class="flex items-center gap-4 text-xs text-neutral-500">
+              <span class="flex items-center gap-1.5">
+                <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:rgba(52,211,153,0.75)"></span>Income
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:rgba(248,113,113,0.65)"></span>Expenses
+              </span>
+            </div>
+          </div>
+          <div id="cashFlowChart" class="mt-2"></div>
+        </div>
+
+        <!-- Investments · Debts · Top Spending -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          <div class="card" data-widget="investment-widget">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="card-title">Investments</h3>
+              <button onclick="window._navigateTo('investments')"
+                      class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+            </div>
+            <div id="investmentWidget">
+              <p class="text-sm text-neutral-500">Loading…</p>
+            </div>
+          </div>
+
+          <div class="card" data-widget="debt-widget">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="card-title">Debts</h3>
+              <button onclick="window._navigateTo('debts')"
+                      class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+            </div>
+            <div id="debtWidget">
+              <p class="text-sm text-neutral-500">Loading…</p>
+            </div>
+          </div>
+
+          <div class="card" data-widget="top-spending">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="card-title">Top Spending</h3>
+              <p class="text-xs text-neutral-500" id="topSpendingPeriod"></p>
+            </div>
+            <div id="topSpendingWidget">
+              <p class="text-sm text-neutral-500">No data.</p>
+            </div>
+          </div>
+
         </div>
       </section>
 
