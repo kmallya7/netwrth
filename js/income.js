@@ -24,6 +24,7 @@ export async function loadIncome() {
     const q    = query(incomeCol(uid), orderBy("date", "desc"));
     const snap = await getDocs(q);
     allIncome  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window._netwrthIncome = allIncome;
     renderIncomeTable(allIncome);
     updateIncomeSummary(allIncome);
     window.dispatchEvent(new Event("netwrth:dataChanged"));
@@ -41,12 +42,13 @@ export async function addIncome(data) {
   try {
     const dateObj = new Date(data.date + "T12:00:00");
     await addDoc(incomeCol(uid), {
-      source:    data.source  || "",
+      source:    data.source     || "",
       amount:    parseFloat(data.amount),
       date:      Timestamp.fromDate(dateObj),
-      type:      data.type    || "Other",
-      account:   data.account || "Cash",
-      notes:     data.notes   || "",
+      type:      data.type       || "Other",
+      typeGroup: data.typeGroup  || data.type || "Other",
+      account:   data.account    || "Cash",
+      notes:     data.notes      || "",
       createdAt: Timestamp.now(),
     });
     showToast("Income saved.");
@@ -69,11 +71,12 @@ export async function updateIncome(id, data) {
   try {
     const dateObj  = new Date(data.date + "T12:00:00");
     const payload  = {
-      source: data.source || "",
-      amount: parseFloat(data.amount),
-      date:   Timestamp.fromDate(dateObj),
-      type:   data.type  || "Other",
-      notes:  data.notes || "",
+      source:    data.source    || "",
+      amount:    parseFloat(data.amount),
+      date:      Timestamp.fromDate(dateObj),
+      type:      data.type      || "Other",
+      typeGroup: data.typeGroup || data.type || "Other",
+      notes:     data.notes     || "",
     };
     // Preserve existing account if not in form
     if (data.account) payload.account = data.account;
@@ -113,12 +116,14 @@ function openIncomeEdit(id) {
   form.amount.value = income.amount || "";
   const d = income.date?.toDate ? income.date.toDate() : new Date(income.date);
   form.date.value   = d.toISOString().split("T")[0];
-  form.type.value   = income.type  || "Other";
   form.notes.value  = income.notes || "";
 
   document.querySelector("#addIncomeModal .modal-title").textContent    = "Edit Income";
   document.querySelector("#addIncomeModal [type='submit']").textContent = "Update Income";
   openModal("addIncomeModal");
+  if (window._initCatPicker) {
+    window._initCatPicker("incCatGroups", "incCatSubs", "income", income.type, income.typeGroup);
+  }
 }
 
 // ── Render Table ──────────────────────────────────────────────────────────
@@ -129,10 +134,10 @@ function renderIncomeTable(income) {
     return;
   }
 
-  tbody.innerHTML = income.map(i => {
+  tbody.innerHTML = income.map((i, idx) => {
     const date = i.date?.toDate ? i.date.toDate().toLocaleDateString("en-IN") : i.date;
     return `
-      <tr class="table-row">
+      <tr class="table-row inc-table-row" style="animation-delay:${idx * 30}ms">
         <td class="py-3 text-neutral-400 text-sm">${date}</td>
         <td class="py-3 font-medium">${i.source}</td>
         <td class="py-3"><span class="category-badge">${i.type}</span></td>
@@ -189,6 +194,9 @@ document.querySelectorAll('.open-modal[data-modal="addIncomeModal"]').forEach(bt
     document.querySelector("#addIncomeModal .modal-title").textContent    = "Add Income";
     document.querySelector("#addIncomeModal [type='submit']").textContent = "Save Income";
     document.getElementById("addIncomeForm").reset();
+    if (window._initCatPicker) {
+      window._initCatPicker("incCatGroups", "incCatSubs", "income", null, null);
+    }
   });
 });
 

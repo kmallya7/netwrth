@@ -35,11 +35,16 @@ const sectionTitles = {
 };
 
 export function showSection(id) {
-  sections.forEach(s   => s.classList.add("hidden"));
-  navLinks.forEach(l   => l.classList.remove("active"));
+  sections.forEach(s => s.classList.add("hidden"));
+  navLinks.forEach(l => l.classList.remove("active"));
 
   const target = document.getElementById(`section-${id}`);
-  if (target) target.classList.remove("hidden");
+  if (target) {
+    target.classList.remove("hidden", "section-entering");
+    // Force reflow so the animation restarts cleanly
+    void target.offsetWidth;
+    target.classList.add("section-entering");
+  }
 
   const activeLink = document.querySelector(`.nav-link[data-section="${id}"]`);
   if (activeLink) activeLink.classList.add("active");
@@ -105,33 +110,12 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
 });
 
 // ── Quick Add Tabs ────────────────────────────────────────────────────────
-const quickExpenseTab     = document.getElementById("quickExpenseTab");
-const quickIncomeTab      = document.getElementById("quickIncomeTab");
-const quickTypeInput      = document.querySelector('#quickAddForm input[name="type"]');
-const quickDescInput      = document.getElementById("quickDescription");
-const quickCatLabel       = document.getElementById("quickCatLabel");
-const quickCategorySelect = document.getElementById("quickCategorySelect");
-const quickSubmitBtn      = document.getElementById("quickSubmitBtn");
-
-const expenseCategoryOptions = `
-  <option>Food & Dining</option>
-  <option>Transport</option>
-  <option>Shopping</option>
-  <option>Bills & Utilities</option>
-  <option>Health</option>
-  <option>Entertainment</option>
-  <option>Education</option>
-  <option>Other</option>
-`;
-
-const incomeTypeOptions = `
-  <option>Salary</option>
-  <option>Freelance</option>
-  <option>Business</option>
-  <option>Investment Returns</option>
-  <option>Gift</option>
-  <option>Other</option>
-`;
+const quickExpenseTab = document.getElementById("quickExpenseTab");
+const quickIncomeTab  = document.getElementById("quickIncomeTab");
+const quickTypeInput  = document.querySelector('#quickAddForm input[name="type"]');
+const quickDescInput  = document.getElementById("quickDescription");
+const quickCatLabel   = document.getElementById("quickCatLabel");
+const quickSubmitBtn  = document.getElementById("quickSubmitBtn");
 
 function setExpenseTab() {
   quickExpenseTab.classList.add("active");
@@ -139,12 +123,8 @@ function setExpenseTab() {
   quickTypeInput.value       = "expense";
   quickDescInput.placeholder = "What did you spend on?";
   quickCatLabel.textContent  = "Category";
-  if (window._populateSelect) {
-    window._populateSelect(quickCategorySelect, "expense");
-  } else {
-    quickCategorySelect.innerHTML = expenseCategoryOptions;
-  }
   quickSubmitBtn.textContent = "Save Expense";
+  if (window._initQuickPicker) window._initQuickPicker("expense");
 }
 
 function setIncomeTab() {
@@ -153,12 +133,8 @@ function setIncomeTab() {
   quickTypeInput.value       = "income";
   quickDescInput.placeholder = "Where did this come from?";
   quickCatLabel.textContent  = "Type";
-  if (window._populateSelect) {
-    window._populateSelect(quickCategorySelect, "income");
-  } else {
-    quickCategorySelect.innerHTML = incomeTypeOptions;
-  }
   quickSubmitBtn.textContent = "Save Income";
+  if (window._initQuickPicker) window._initQuickPicker("income");
 }
 
 quickExpenseTab.addEventListener("click", setExpenseTab);
@@ -169,6 +145,10 @@ document.getElementById("quickAddBtn").addEventListener("click", () => {
   setExpenseTab();
   document.getElementById("quickDate").value = new Date().toISOString().split("T")[0];
   openModal("quickAddModal");
+  // Picker needs DOM to be visible; defer slightly
+  setTimeout(() => {
+    if (window._initQuickPicker) window._initQuickPicker("expense");
+  }, 50);
 });
 
 // ── Two-click Soft Delete ────────────────────────────────────────────────

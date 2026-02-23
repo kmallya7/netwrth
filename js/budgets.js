@@ -23,7 +23,12 @@ function monthlySpend() {
   allExpenses.forEach(e => {
     const d = e.date?.toDate ? e.date.toDate() : new Date(e.date);
     if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      // Accumulate by sub-category name
       spend[e.category] = (spend[e.category] || 0) + e.amount;
+      // Also accumulate by parent group so group-level budgets work
+      if (e.categoryGroup && e.categoryGroup !== e.category) {
+        spend[e.categoryGroup] = (spend[e.categoryGroup] || 0) + e.amount;
+      }
     }
   });
   return spend;

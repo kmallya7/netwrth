@@ -14,21 +14,23 @@ document.getElementById("quickAddForm").addEventListener("submit", async (e) => 
   let ok;
   if (type === "expense") {
     ok = await addExpense({
-      description: fd.description,
-      amount:      fd.amount,
-      date:        fd.date,
-      category:    fd.category || "Other",
-      account:     fd.account  || "Cash",
-      notes:       fd.notes    || "",
+      description:   fd.description,
+      amount:        fd.amount,
+      date:          fd.date,
+      category:      fd.category      || "Other",
+      categoryGroup: fd.categoryGroup || fd.category || "Other",
+      account:       fd.account       || "Cash",
+      notes:         fd.notes         || "",
     });
   } else {
     ok = await addIncome({
-      source:  fd.description,         // description field maps to source for income
-      amount:  fd.amount,
-      date:    fd.date,
-      type:    fd.category || "Other", // category select holds the income type
-      account: fd.account  || "Cash",
-      notes:   fd.notes    || "",
+      source:    fd.description,                          // description maps to source
+      amount:    fd.amount,
+      date:      fd.date,
+      type:      fd.category      || "Other",             // category hidden input → type
+      typeGroup: fd.categoryGroup || fd.category || "Other",
+      account:   fd.account       || "Cash",
+      notes:     fd.notes         || "",
     });
   }
 
