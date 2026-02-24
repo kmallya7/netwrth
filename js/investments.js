@@ -17,6 +17,14 @@ export async function loadInvestments() {
   const uid = getCurrentUid();
   if (!uid) return;
 
+  if (window._demoMode) {
+    allInvestments = window._demoData?.investments || [];
+    renderInvestmentsTable(allInvestments);
+    updateInvestmentSummary(allInvestments);
+    window.dispatchEvent(new CustomEvent("netwrth:dataChanged"));
+    return allInvestments;
+  }
+
   const snap     = await getDocs(investmentsCol(uid));
   allInvestments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderInvestmentsTable(allInvestments);
@@ -74,6 +82,7 @@ function updateInvestmentSummary(items) {
 
 // ── Add ───────────────────────────────────────────────────────────────────
 export async function addInvestment(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await addDoc(investmentsCol(uid), {
@@ -90,6 +99,7 @@ export async function addInvestment(data) {
 
 // ── Update ────────────────────────────────────────────────────────────────
 export async function updateInvestment(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await updateDoc(doc(db, "users", uid, "investments", id), {
@@ -105,6 +115,7 @@ export async function updateInvestment(id, data) {
 
 // ── Delete ────────────────────────────────────────────────────────────────
 export async function deleteInvestment(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await deleteDoc(doc(db, "users", uid, "investments", id));

@@ -24,6 +24,15 @@
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="h-5 w-5" />
         Sign in with Google
       </button>
+      <div class="flex items-center gap-3 my-4">
+        <div class="flex-1 h-px bg-neutral-800"></div>
+        <span class="text-xs text-neutral-600">or</span>
+        <div class="flex-1 h-px bg-neutral-800"></div>
+      </div>
+      <button id="tryDemoBtn" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-neutral-700 text-neutral-300 font-medium text-sm hover:bg-neutral-800 hover:border-neutral-600 transition">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Try Demo
+      </button>
       <p class="text-xs text-neutral-600 mt-6">© 2026 netwrth</p>
     </div>
   </div>
@@ -84,6 +93,10 @@
         </a>
 
         <p class="px-2 pt-4 pb-1 text-xs font-medium text-neutral-500 uppercase tracking-widest nav-section-label">Data</p>
+        <a href="#" class="nav-link" data-section="insights" title="Insights">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="m6 16 4-8 4 6 2-4 4 6"/></svg></span>
+          <span class="nav-label">Insights</span>
+        </a>
         <a href="#" class="nav-link" data-section="reports" title="Reports & Export">
           <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></svg></span>
           <span class="nav-label">Reports & Export</span>
@@ -118,6 +131,18 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-y-auto bg-neutral-950">
 
+      <!-- Demo Banner -->
+      <div id="demoBanner" class="hidden sticky top-0 z-20 flex items-center justify-between gap-3 px-5 py-2.5 bg-indigo-600/20 border-b border-indigo-500/30 text-indigo-300 text-xs">
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span><strong>Demo mode</strong> — you're exploring sample data for <strong>Arjun Sharma</strong>. Changes won't be saved.</span>
+        </div>
+        <button onclick="document.getElementById('appShell').classList.add('hidden'); document.getElementById('authScreen').classList.remove('hidden'); window._demoMode=false;"
+                class="shrink-0 px-3 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 transition font-medium">
+          Sign in with Google →
+        </button>
+      </div>
+
       <!-- Top Bar -->
       <header class="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur border-b border-neutral-800 px-6 py-3 flex items-center justify-between">
         <div>
@@ -126,6 +151,11 @@
         </div>
         <div class="flex items-center gap-3">
           <button id="darkModeToggle" class="text-neutral-400 hover:text-neutral-100 transition text-lg" title="Toggle dark mode">◐</button>
+          <button id="customizeBtn" onclick="window._toggleCustomizeMode()"
+                  class="hidden flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition px-3 py-1.5 rounded-lg hover:bg-neutral-800/50">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
+            <span id="customizeBtnLabel">Edit Layout</span>
+          </button>
           <button id="quickAddBtn" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-semibold transition">
             + Add Transaction
           </button>
@@ -137,29 +167,7 @@
       <!-- DASHBOARD -->
       <section id="section-dashboard" class="section p-6 space-y-6">
 
-        <!-- Customize bar -->
-        <div class="flex justify-end">
-          <button onclick="window._toggleCustomizePanel()"
-                  class="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition px-3 py-1.5 rounded-lg hover:bg-neutral-800/50">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
-            Customize
-          </button>
-        </div>
-
-        <!-- Customize panel -->
-        <div id="customizePanel" class="hidden card py-3 px-4">
-          <p class="text-xs font-medium text-neutral-500 uppercase tracking-widest mb-3">Show / Hide Widgets</p>
-          <div class="flex flex-wrap gap-2">
-            <button class="widget-toggle-btn active" data-widget="recent-transactions" onclick="window._toggleWidget(this)">Recent Transactions</button>
-            <button class="widget-toggle-btn active" data-widget="budget-overview"     onclick="window._toggleWidget(this)">Budget Overview</button>
-            <button class="widget-toggle-btn active" data-widget="cashflow-chart"      onclick="window._toggleWidget(this)">Cash Flow</button>
-            <button class="widget-toggle-btn active" data-widget="investment-widget"   onclick="window._toggleWidget(this)">Investments</button>
-            <button class="widget-toggle-btn active" data-widget="debt-widget"         onclick="window._toggleWidget(this)">Debts</button>
-            <button class="widget-toggle-btn active" data-widget="top-spending"        onclick="window._toggleWidget(this)">Top Spending</button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="statCardsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
           <!-- Net Worth -->
           <div class="stat-card cursor-pointer" onclick="window._showCardDetail('netWorth')">
@@ -170,7 +178,10 @@
                       title="Change period">All Time</button>
             </div>
             <p class="stat-value" id="statNetWorth">₹0</p>
-            <p class="stat-delta positive" id="deltaNetWorth">— this cycle</p>
+            <div class="flex items-end justify-between gap-2">
+              <p class="stat-delta positive" id="deltaNetWorth">— this cycle</p>
+              <div id="spkNetWorth" style="line-height:0;opacity:0.55;flex-shrink:0"></div>
+            </div>
           </div>
 
           <!-- Income -->
@@ -182,7 +193,10 @@
                       title="Change period">—</button>
             </div>
             <p class="stat-value" id="statIncome">₹0</p>
-            <p class="stat-delta positive" id="deltaIncome">— vs prev period</p>
+            <div class="flex items-end justify-between gap-2">
+              <p class="stat-delta positive" id="deltaIncome">— vs prev period</p>
+              <div id="spkIncome" style="line-height:0;opacity:0.55;flex-shrink:0"></div>
+            </div>
           </div>
 
           <!-- Expenses -->
@@ -194,7 +208,10 @@
                       title="Change period">—</button>
             </div>
             <p class="stat-value" id="statExpenses">₹0</p>
-            <p class="stat-delta negative" id="deltaExpenses">— vs prev period</p>
+            <div class="flex items-end justify-between gap-2">
+              <p class="stat-delta negative" id="deltaExpenses">— vs prev period</p>
+              <div id="spkExpenses" style="line-height:0;opacity:0.55;flex-shrink:0"></div>
+            </div>
           </div>
 
           <!-- Savings Rate -->
@@ -206,82 +223,227 @@
                       title="Change period">—</button>
             </div>
             <p class="stat-value" id="statSavings">0%</p>
-            <p class="stat-delta" id="deltaSavings">— of income saved</p>
+            <div class="flex items-end justify-between gap-2">
+              <p class="stat-delta" id="deltaSavings">— of income saved</p>
+              <div id="spkSavings" style="line-height:0;opacity:0.55;flex-shrink:0"></div>
+            </div>
           </div>
 
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div class="card" data-widget="recent-transactions">
-            <h3 class="card-title">Recent Transactions</h3>
-            <div id="recentTransactions" class="space-y-2 mt-3">
-              <p class="text-sm text-neutral-500">No transactions yet.</p>
-            </div>
-          </div>
-          <div class="card" data-widget="budget-overview">
-            <div class="flex items-center justify-between">
-              <h3 class="card-title">Budget Overview</h3>
-              <button onclick="window._navigateTo('budgets')"
-                      class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
-            </div>
-            <div id="budgetOverview" class="space-y-3 mt-3">
-              <p class="text-sm text-neutral-500">No budgets set.</p>
-            </div>
-          </div>
-        </div>
+        <!-- Widget Grid — unified sortable grid (drag handles reorder, chevrons collapse) -->
+        <div id="widgetGrid" class="grid grid-cols-1 lg:grid-cols-6 gap-4">
 
-        <!-- Cash Flow Chart -->
-        <div class="card" data-widget="cashflow-chart">
-          <div class="flex items-center justify-between mb-1">
-            <h3 class="card-title">Cash Flow · Last 12 Months</h3>
-            <div class="flex items-center gap-4 text-xs text-neutral-500">
-              <span class="flex items-center gap-1.5">
-                <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:rgba(52,211,153,0.75)"></span>Income
-              </span>
-              <span class="flex items-center gap-1.5">
-                <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:rgba(248,113,113,0.65)"></span>Expenses
-              </span>
-            </div>
-          </div>
-          <div id="cashFlowChart" class="mt-2"></div>
-        </div>
-
-        <!-- Investments · Debts · Top Spending -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-          <div class="card" data-widget="investment-widget">
+          <!-- Month Pulse -->
+          <div class="card lg:col-span-3" data-widget="month-pulse">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="card-title">Investments</h3>
-              <button onclick="window._navigateTo('investments')"
-                      class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+              <div class="flex items-center gap-2">
+                <span class="widget-drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                </span>
+                <h3 class="card-title">Month Pulse</h3>
+              </div>
+              <div class="flex items-center gap-1">
+                <button class="widget-hide-btn" onclick="window._hideWidget('month-pulse')" title="Hide widget">×</button>
+                <button class="widget-collapse-btn" onclick="window._toggleCollapse('month-pulse')" title="Collapse">
+                  <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
             </div>
-            <div id="investmentWidget">
-              <p class="text-sm text-neutral-500">Loading…</p>
+            <div class="widget-body">
+              <div id="monthPulseWidget">
+                <p class="text-sm text-neutral-500">Loading…</p>
+              </div>
             </div>
           </div>
 
-          <div class="card" data-widget="debt-widget">
+          <!-- Recent Transactions -->
+          <div class="card lg:col-span-3" data-widget="recent-transactions">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="card-title">Debts</h3>
-              <button onclick="window._navigateTo('debts')"
-                      class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+              <div class="flex items-center gap-2">
+                <span class="widget-drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                </span>
+                <h3 class="card-title">Recent Transactions</h3>
+              </div>
+              <div class="flex items-center gap-1">
+                <button class="widget-hide-btn" onclick="window._hideWidget('recent-transactions')" title="Hide widget">×</button>
+                <button class="widget-collapse-btn" onclick="window._toggleCollapse('recent-transactions')" title="Collapse">
+                  <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
             </div>
-            <div id="debtWidget">
-              <p class="text-sm text-neutral-500">Loading…</p>
+            <div class="widget-body">
+              <div id="recentTransactions" class="space-y-2">
+                <p class="text-sm text-neutral-500">No transactions yet.</p>
+              </div>
             </div>
           </div>
 
-          <div class="card" data-widget="top-spending">
+          <!-- Budget Overview -->
+          <div class="card lg:col-span-3" data-widget="budget-overview">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="card-title">Top Spending</h3>
-              <p class="text-xs text-neutral-500" id="topSpendingPeriod"></p>
+              <div class="flex items-center gap-2">
+                <span class="widget-drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                </span>
+                <h3 class="card-title">Budget Overview</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window._navigateTo('budgets')"
+                        class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+                <button class="widget-hide-btn" onclick="window._hideWidget('budget-overview')" title="Hide widget">×</button>
+                <button class="widget-collapse-btn" onclick="window._toggleCollapse('budget-overview')" title="Collapse">
+                  <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
             </div>
-            <div id="topSpendingWidget">
-              <p class="text-sm text-neutral-500">No data.</p>
+            <div class="widget-body">
+              <div id="budgetOverview" class="space-y-3">
+                <p class="text-sm text-neutral-500">No budgets set.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cash Flow Chart -->
+          <div class="card lg:col-span-6" data-widget="cashflow-chart">
+            <div class="mb-1">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="widget-drag-handle" title="Drag to reorder">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                  </span>
+                  <h3 class="card-title" id="cashFlowTitle">Cash Flow · Last 12 Months</h3>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-4 text-xs text-neutral-500">
+                    <span class="flex items-center gap-1.5">
+                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="0" y1="4" x2="18" y2="4" stroke="rgba(52,211,153,0.9)" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="2.5" fill="#111" stroke="rgba(52,211,153,0.9)" stroke-width="1.5"/>
+                      </svg>
+                      Income
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="0" y1="4" x2="18" y2="4" stroke="rgba(248,113,113,0.85)" stroke-width="1.75" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="2.5" fill="#111" stroke="rgba(248,113,113,0.85)" stroke-width="1.5"/>
+                      </svg>
+                      Expenses
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                      <svg width="18" height="8" viewBox="0 0 18 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="0" y1="4" x2="18" y2="4" stroke="rgba(148,163,184,0.65)" stroke-width="1.25" stroke-dasharray="3 2" stroke-linecap="round"/>
+                      </svg>
+                      Net Saved
+                    </span>
+                  </div>
+                  <button class="widget-hide-btn" onclick="window._hideWidget('cashflow-chart')" title="Hide widget">×</button>
+                  <button class="widget-collapse-btn" onclick="window._toggleCollapse('cashflow-chart')" title="Collapse">
+                    <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Period filter bar -->
+              <div class="flex items-center gap-2 mt-2 flex-wrap">
+                <div id="cfFilterBar" class="flex items-center gap-1">
+                  <button class="cf-period-btn active" data-period="12m">12 Months</button>
+                  <button class="cf-period-btn" data-period="quarter">Quarter</button>
+                  <button class="cf-period-btn" data-period="month">This Month</button>
+                  <button class="cf-period-btn" data-period="prev_month">Last Month</button>
+                  <button class="cf-period-btn" data-period="custom">Custom</button>
+                </div>
+                <div id="cfCustomRange" class="hidden flex items-center gap-1.5">
+                  <input type="month" id="cfStartMonth" class="cf-month-input">
+                  <span class="text-neutral-600 text-xs">–</span>
+                  <input type="month" id="cfEndMonth" class="cf-month-input">
+                </div>
+              </div>
+            </div>
+            <div class="widget-body">
+              <div id="cashFlowChart" class="mt-2"></div>
+            </div>
+          </div>
+
+          <!-- Investments -->
+          <div class="card lg:col-span-3" data-widget="investment-widget">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="widget-drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                </span>
+                <h3 class="card-title">Investments</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window._navigateTo('investments')"
+                        class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+                <button class="widget-hide-btn" onclick="window._hideWidget('investment-widget')" title="Hide widget">×</button>
+                <button class="widget-collapse-btn" onclick="window._toggleCollapse('investment-widget')" title="Collapse">
+                  <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="widget-body">
+              <div id="investmentWidget">
+                <p class="text-sm text-neutral-500">Loading…</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Debts -->
+          <div class="card lg:col-span-3" data-widget="debt-widget">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="widget-drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                </span>
+                <h3 class="card-title">Debts</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window._navigateTo('debts')"
+                        class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+                <button class="widget-hide-btn" onclick="window._hideWidget('debt-widget')" title="Hide widget">×</button>
+                <button class="widget-collapse-btn" onclick="window._toggleCollapse('debt-widget')" title="Collapse">
+                  <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="widget-body">
+              <div id="debtWidget">
+                <p class="text-sm text-neutral-500">Loading…</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Spending -->
+          <div class="card lg:col-span-3" data-widget="top-spending">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="widget-drag-handle" title="Drag to reorder">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                </span>
+                <h3 class="card-title">Top Spending</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <p class="text-xs text-neutral-500" id="topSpendingPeriod"></p>
+                <button class="widget-hide-btn" onclick="window._hideWidget('top-spending')" title="Hide widget">×</button>
+                <button class="widget-collapse-btn" onclick="window._toggleCollapse('top-spending')" title="Collapse">
+                  <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="widget-body">
+              <div id="topSpendingWidget">
+                <p class="text-sm text-neutral-500">No data.</p>
+              </div>
             </div>
           </div>
 
         </div>
+
+        <!-- Hidden widgets restore strip (shown in edit mode) -->
+        <div id="hiddenWidgetsPanel" class="hidden"></div>
+
       </section>
 
       <!-- EXPENSES -->
@@ -540,6 +702,158 @@
       </section>
 
       <!-- REPORTS & EXPORT -->
+      <!-- ═══════════════════════════════════════════════════
+           INSIGHTS
+      ═══════════════════════════════════════════════════ -->
+      <section id="section-insights" class="section hidden p-6 space-y-5">
+
+        <!-- Header + Period Filter -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 class="text-lg font-semibold">Insights</h3>
+            <p class="text-sm text-neutral-500">Your financial picture at a glance.</p>
+          </div>
+          <div class="flex items-center gap-1 flex-wrap">
+            <button class="ins-period-btn active" data-period="3m"  onclick="window._insSetPeriod('3m')">3M</button>
+            <button class="ins-period-btn"         data-period="6m"  onclick="window._insSetPeriod('6m')">6M</button>
+            <button class="ins-period-btn"         data-period="1y"  onclick="window._insSetPeriod('1y')">1Y</button>
+            <button class="ins-period-btn"         data-period="2y"  onclick="window._insSetPeriod('2y')">2Y</button>
+            <button class="ins-period-btn"         data-period="all" onclick="window._insSetPeriod('all')">All</button>
+          </div>
+        </div>
+
+        <!-- Sub-tabs -->
+        <div class="flex items-center gap-1 border-b border-neutral-800 pb-0 -mb-1 overflow-x-auto">
+          <button class="ins-tab-btn active" data-tab="overview"     onclick="window._insSetTab('overview')">Overview</button>
+          <button class="ins-tab-btn"         data-tab="spending"     onclick="window._insSetTab('spending')">Spending</button>
+          <button class="ins-tab-btn"         data-tab="networth"     onclick="window._insSetTab('networth')">Net Worth</button>
+          <button class="ins-tab-btn"         data-tab="investments"  onclick="window._insSetTab('investments')">Investments</button>
+        </div>
+
+        <!-- KPI Strip — always visible -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="stat-card">
+            <p class="stat-label">Avg Monthly Spend</p>
+            <p class="stat-value font-mono" id="insKpiAvgSpend">—</p>
+            <p class="stat-delta" id="insKpiAvgDelta">per month average</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Savings Rate</p>
+            <p class="stat-value font-mono" id="insKpiSavings">—</p>
+            <p class="stat-delta" id="insKpiSavingsDelta">of income saved</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Net Worth</p>
+            <p class="stat-value font-mono" id="insKpiNetWorth">—</p>
+            <p class="stat-delta" id="insKpiNWDelta">assets vs liabilities</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Top Category</p>
+            <p class="stat-value text-xl" id="insKpiTopCat">—</p>
+            <p class="stat-delta font-mono" id="insKpiTopCatAmt">—</p>
+          </div>
+        </div>
+
+        <!-- ── Overview Tab ────────────────────────────────────────── -->
+        <div class="ins-tab-pane active" data-tab="overview">
+          <!-- Income vs Expenses stacked bar -->
+          <div class="card space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="ins-chart-title">Income vs Expenses</p>
+                <p class="ins-chart-subtitle">Monthly comparison</p>
+              </div>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span> Income</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-red-400 inline-block"></span> Expenses</span>
+              </div>
+            </div>
+            <div id="insStackedBar" class="w-full overflow-hidden"></div>
+          </div>
+
+          <!-- Spending Mix + Savings Rate (2-col) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Spending Mix ring -->
+            <div class="card space-y-3">
+              <p class="ins-chart-title">Spending Mix</p>
+              <p class="ins-chart-subtitle">Expenses by category</p>
+              <div class="flex items-start gap-4 flex-wrap">
+                <div id="insSpendMix" class="shrink-0"></div>
+                <div id="insSpendMixLegend" class="flex-1 space-y-2 min-w-0"></div>
+              </div>
+            </div>
+
+            <!-- Savings Rate Trend -->
+            <div class="card space-y-3">
+              <p class="ins-chart-title">Savings Rate Trend</p>
+              <p class="ins-chart-subtitle">Monthly % of income saved</p>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1"><span style="width:14px;height:6px;border-radius:2px;background:rgba(239,68,68,0.2);display:inline-block"></span> &lt;10%</span>
+                <span class="flex items-center gap-1"><span style="width:14px;height:6px;border-radius:2px;background:rgba(245,158,11,0.2);display:inline-block"></span> 10–20%</span>
+                <span class="flex items-center gap-1"><span style="width:14px;height:6px;border-radius:2px;background:rgba(16,185,129,0.2);display:inline-block"></span> &gt;20%</span>
+              </div>
+              <div id="insSavingsRate" class="w-full overflow-hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Spending Tab ────────────────────────────────────────── -->
+        <div class="ins-tab-pane" data-tab="spending">
+          <!-- Category Breakdown -->
+          <div class="card space-y-3">
+            <p class="ins-chart-title">Category Breakdown</p>
+            <p class="ins-chart-subtitle">Top spending categories for period</p>
+            <div id="insCatBreakdown" class="space-y-1"></div>
+          </div>
+
+          <!-- Spend Heatmap -->
+          <div class="card space-y-3">
+            <p class="ins-chart-title">Spend Heatmap</p>
+            <p class="ins-chart-subtitle">Daily spending intensity (last 26 weeks)</p>
+            <div id="insHeatmap"></div>
+          </div>
+
+          <!-- Budget vs Actual -->
+          <div class="card space-y-3">
+            <p class="ins-chart-title">Budget vs Actual</p>
+            <p class="ins-chart-subtitle">How spending tracks against budgets</p>
+            <div id="insBudgetVsActual" class="space-y-1"></div>
+          </div>
+        </div>
+
+        <!-- ── Net Worth Tab ──────────────────────────────────────── -->
+        <div class="ins-tab-pane" data-tab="networth">
+          <div class="card space-y-3">
+            <div>
+              <p class="ins-chart-title">Net Worth Trajectory</p>
+              <p class="ins-chart-subtitle">Estimated from cash flow history</p>
+            </div>
+            <div id="insNWTrajectory" class="w-full overflow-hidden"></div>
+          </div>
+        </div>
+
+        <!-- ── Investments Tab ────────────────────────────────────── -->
+        <div class="ins-tab-pane" data-tab="investments">
+          <!-- Investment Performance -->
+          <div class="card space-y-3">
+            <p class="ins-chart-title">Investment Performance</p>
+            <p class="ins-chart-subtitle">Invested vs current value per holding</p>
+            <div id="insInvPerf" class="space-y-1"></div>
+          </div>
+
+          <!-- Portfolio Allocation ring -->
+          <div class="card space-y-3">
+            <p class="ins-chart-title">Portfolio Allocation</p>
+            <p class="ins-chart-subtitle">Current value by investment type</p>
+            <div class="flex items-start gap-4 flex-wrap">
+              <div id="insPortfolioRing" class="shrink-0"></div>
+              <div id="insPortfolioLegend" class="flex-1 space-y-2 min-w-0"></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
       <section id="section-reports" class="section hidden p-6 space-y-6">
         <div>
           <h3 class="text-lg font-semibold">Reports & Export</h3>
@@ -1041,6 +1355,9 @@
     </div>
   </div>
 
+  <!-- SortableJS — drag-to-reorder widgets (no build step) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+
   <!-- Firebase SDKs -->
   <script type="module" src="js/firebase.js"></script>
   <!-- App Modules -->
@@ -1054,6 +1371,7 @@
   <script type="module" src="js/investments.js"></script>
   <script type="module" src="js/debts.js"></script>
   <script type="module" src="js/reports.js"></script>
+  <script type="module" src="js/insights.js"></script>
   <script type="module" src="js/dashboard.js"></script>
   <script type="module" src="js/app.js"></script>
 

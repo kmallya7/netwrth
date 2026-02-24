@@ -17,6 +17,14 @@ export async function loadDebts() {
   const uid = getCurrentUid();
   if (!uid) return;
 
+  if (window._demoMode) {
+    allDebts = window._demoData?.debts || [];
+    renderDebtsList(allDebts);
+    updateDebtSummary(allDebts);
+    window.dispatchEvent(new CustomEvent("netwrth:dataChanged"));
+    return allDebts;
+  }
+
   const snap = await getDocs(debtsCol(uid));
   allDebts   = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderDebtsList(allDebts);
@@ -82,6 +90,7 @@ function updateDebtSummary(items) {
 
 // ── Add ───────────────────────────────────────────────────────────────────
 export async function addDebt(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await addDoc(debtsCol(uid), {
@@ -99,6 +108,7 @@ export async function addDebt(data) {
 
 // ── Update ────────────────────────────────────────────────────────────────
 export async function updateDebt(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await updateDoc(doc(db, "users", uid, "debts", id), {
@@ -115,6 +125,7 @@ export async function updateDebt(id, data) {
 
 // ── Delete ────────────────────────────────────────────────────────────────
 export async function deleteDebt(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await deleteDoc(doc(db, "users", uid, "debts", id));

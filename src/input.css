@@ -327,52 +327,23 @@ body, aside, header, main,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PREMIUM STAT CARD — visible border + lift + shimmer on hover
+   CARDS — springy 4px bounce on hover, consistent across all modules
+   cubic-bezier(0.34, 1.2, 0.64, 1) overshoots y=1 → produces the bounce
    ═══════════════════════════════════════════════════════════════════════════ */
-.stat-card {
-  position: relative;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
-              box-shadow 0.22s ease, border-color 0.22s ease,
-              background-color 0.22s ease;
-}
-/* Emerald shimmer line at top — fades in on hover */
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent 10%, rgba(16, 185, 129, 0.4) 50%, transparent 90%);
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  pointer-events: none;
-  border-radius: 16px 16px 0 0;
-}
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45),
-              0 0 0 1px rgba(16, 185, 129, 0.12),
-              inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.14);
-  background-color: #1e1e1e;
-}
-.stat-card:hover::before {
-  opacity: 1;
-}
-
-/* ── Content cards (recent tx, budget overview) — subtle lift ──────────── */
-.card {
+.card, .stat-card {
   border-color: rgba(255, 255, 255, 0.07);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s cubic-bezier(0.34, 1.2, 0.64, 1),
-              box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
+              box-shadow 0.22s ease, border-color 0.22s ease,
+              background-color 0.25s ease, color 0.25s ease;
 }
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 255, 255, 0.11);
+.card:hover, .stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.stat-card {
+  position: relative;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1171,6 +1142,47 @@ html:not(.dark) .exp-search-icon              { color: #a1a1aa; }
 html:not(.dark) .filter-period-btn       { background: rgba(0,0,0,0.05); color: #71717a; }
 html:not(.dark) .filter-period-btn:hover { background-color: rgba(0,0,0,0.09); color: #3f3f46; }
 
+/* ── Cash Flow period pill buttons ─────────────────────────────────────── */
+.cf-period-btn {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #525252;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  white-space: nowrap;
+}
+.cf-period-btn:hover {
+  color: #a3a3a3;
+  background-color: rgba(255,255,255,0.05);
+}
+.cf-period-btn.active {
+  color: #d4d4d4;
+  background-color: rgba(255,255,255,0.09);
+}
+.cf-month-input {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #a3a3a3;
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  color-scheme: dark;
+}
+.cf-month-input:focus {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+html:not(.dark) .cf-period-btn          { color: #a1a1aa; }
+html:not(.dark) .cf-period-btn:hover    { color: #52525b; background-color: rgba(0,0,0,0.05); }
+html:not(.dark) .cf-period-btn.active   { color: #18181b; background-color: rgba(0,0,0,0.08); }
+html:not(.dark) .cf-month-input        { background: rgba(0,0,0,0.04); border-color: #d4d4d8; color: #52525b; color-scheme: light; }
+html:not(.dark) .cf-month-input:focus  { border-color: rgba(5,150,105,0.5); }
+
 /* ═══════════════════════════════════════════════════════════════════════════
    PERIOD PICKER — 4-mode selector modal rows
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -1253,7 +1265,7 @@ html:not(.dark) .period-mode-config      { border-top-color: #e4e4e7; }
   to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 #section-dashboard .stat-card {
-  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: cardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 #section-dashboard .stat-card:nth-child(1) { animation-delay: 0.00s; }
 #section-dashboard .stat-card:nth-child(2) { animation-delay: 0.06s; }
@@ -1307,3 +1319,399 @@ html:not(.dark) .widget-toggle-btn.active { background: rgba(5,150,105,0.09); co
 }
 #cardDetailBody .exp-breakdown-row:last-child { border-bottom: none; }
 html:not(.dark) #cardDetailBody .exp-breakdown-row { border-bottom-color: rgba(0,0,0,0.06); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CUSTOMIZE BANNER — shown while in jiggle/customize mode
+   ═══════════════════════════════════════════════════════════════════════════ */
+.customize-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  font-size: 12px;
+  color: #6ee7b7;
+  animation: bannerFadeIn 0.2s ease;
+}
+@keyframes bannerFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.customize-banner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+  50%       { box-shadow: 0 0 0 5px rgba(16,185,129,0.08); }
+}
+.customize-banner-done {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 7px;
+  background: #10b981;
+  color: #022c22;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.customize-banner-done:hover { background: #34d399; }
+html:not(.dark) .customize-banner { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.2); color: #065f46; }
+html:not(.dark) .customize-banner-dot { background: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
+html:not(.dark) .customize-banner-done { background: #059669; color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   JIGGLE MODE — widget cards animate when customize mode is active
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes customizeControlIn {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes jiggle {
+  0%,  100% { transform: rotate(-0.25deg); }
+  50%        { transform: rotate( 0.25deg); }
+}
+
+/* All cards jiggle in customize mode */
+#widgetGrid[data-customizing] > * {
+  animation: jiggle 0.8s ease-in-out infinite alternate;
+  transform-origin: center bottom;
+}
+
+/* Stagger each card so they don't all move in sync */
+#widgetGrid[data-customizing] > *:nth-child(1) { animation-delay: 0s; }
+#widgetGrid[data-customizing] > *:nth-child(2) { animation-delay: 0.07s; }
+#widgetGrid[data-customizing] > *:nth-child(3) { animation-delay: 0.14s; }
+#widgetGrid[data-customizing] > *:nth-child(4) { animation-delay: 0.21s; }
+#widgetGrid[data-customizing] > *:nth-child(5) { animation-delay: 0.28s; }
+#widgetGrid[data-customizing] > *:nth-child(6) { animation-delay: 0.06s; }
+
+/* Drag handle becomes visible and interactive in customize mode */
+#widgetGrid[data-customizing] .widget-drag-handle {
+  opacity: 1;
+  pointer-events: auto;
+  color: #10b981;
+  cursor: grab;
+  animation: customizeControlIn 0.25s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* Customize button morphs into a "Done" state */
+#customizeBtn.is-customizing {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WIDGET HIDE BUTTON — × badge, only visible in customize mode
+   ═══════════════════════════════════════════════════════════════════════════ */
+.widget-hide-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+.widget-hide-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(1.15);
+}
+
+/* Show × buttons only while in customize mode */
+#widgetGrid[data-customizing] .widget-hide-btn {
+  display: flex;
+  animation: customizeControlIn 0.25s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+html:not(.dark) .widget-hide-btn {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.25);
+  color: #dc2626;
+}
+html:not(.dark) .widget-hide-btn:hover { background: rgba(220, 38, 38, 0.18); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WIDGET COLLAPSE — smooth max-height transition
+   ═══════════════════════════════════════════════════════════════════════════ */
+.widget-body {
+  overflow: hidden;
+  max-height: 1200px;
+  opacity: 1;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s ease;
+}
+.widget-body.collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Cash flow chart: allow tooltip to overflow the widget body */
+[data-widget="cashflow-chart"] .widget-body {
+  overflow: visible;
+}
+.widget-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: #525252;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+.widget-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #a3a3a3;
+}
+.widget-collapse-chevron {
+  display: block;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.widget-collapse-chevron.rotated { transform: rotate(-90deg); }
+html:not(.dark) .widget-collapse-btn:hover { background: rgba(0,0,0,0.06); color: #71717a; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DRAG TO REORDER — SortableJS drag states & handle
+   ═══════════════════════════════════════════════════════════════════════════ */
+.widget-drag-handle {
+  cursor: default;
+  color: #404040;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: color 0.15s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+}
+.widget-drag-handle:hover  { color: #71717a; }
+.widget-drag-handle:active { cursor: grabbing; }
+/* Ghost (placeholder left behind while dragging) */
+.widget-ghost {
+  opacity: 0.3;
+  background: rgba(16, 185, 129, 0.06) !important;
+  border: 1px dashed rgba(16, 185, 129, 0.35) !important;
+  border-radius: 16px;
+}
+/* The element being dragged */
+.widget-chosen {
+  box-shadow: 0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(16,185,129,0.15) !important;
+  transform: translateY(-4px) scale(1.005) !important;
+  z-index: 100;
+}
+html:not(.dark) .widget-ghost { background: rgba(5,150,105,0.04) !important; border-color: rgba(5,150,105,0.28) !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   INSIGHTS SECTION
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Period filter pills ──────────────────────────────────── */
+.ins-period-btn {
+  padding: 0.3125rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #737373;
+  transition: color 0.15s, background-color 0.15s;
+  border: 1px solid transparent;
+}
+.ins-period-btn:hover { color: #e5e5e5; background: rgba(255,255,255,0.05); }
+.ins-period-btn.active {
+  background: rgba(16,185,129,0.12);
+  color: #34d399;
+  border-color: rgba(16,185,129,0.25);
+}
+html:not(.dark) .ins-period-btn.active {
+  background: rgba(5,150,105,0.10);
+  color: #059669;
+  border-color: rgba(5,150,105,0.25);
+}
+html:not(.dark) .ins-period-btn:hover { background: rgba(0,0,0,0.05); color: #27272a; }
+
+/* ── Sub-tab buttons ──────────────────────────────────────── */
+.ins-tab-btn {
+  padding: 0.375rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #737373;
+  transition: color 0.15s, background-color 0.15s;
+  white-space: nowrap;
+}
+.ins-tab-btn:hover { color: #e5e5e5; background: rgba(255,255,255,0.05); }
+.ins-tab-btn.active { background: #262626; color: #f5f5f5; }
+html:not(.dark) .ins-tab-btn:hover { background: rgba(0,0,0,0.05); color: #27272a; }
+html:not(.dark) .ins-tab-btn.active { background: #e4e4e7; color: #18181b; }
+
+/* ── Chart card ───────────────────────────────────────────── */
+.ins-chart-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #d4d4d4;
+}
+html:not(.dark) .ins-chart-title { color: #27272a; }
+.ins-chart-subtitle {
+  font-size: 0.75rem;
+  color: #737373;
+}
+
+/* ── Ring chart legend ────────────────────────────────────── */
+.ins-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.ins-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ins-legend-label { color: #a3a3a3; flex: 1; }
+html:not(.dark) .ins-legend-label { color: #52525b; }
+.ins-legend-val { font-family: 'DM Mono', monospace; color: #d4d4d4; }
+html:not(.dark) .ins-legend-val { color: #27272a; }
+
+/* ── Heatmap ──────────────────────────────────────────────── */
+.ins-heatmap-wrap {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.ins-heat-grid {
+  display: flex;
+  gap: 3px;
+  align-items: flex-start;
+}
+.ins-heat-col { display: flex; flex-direction: column; gap: 3px; }
+.ins-heat-cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  cursor: default;
+  transition: transform 0.1s ease;
+  position: relative;
+}
+.ins-heat-cell:hover { transform: scale(1.25); z-index: 1; }
+.ins-heat-label {
+  font-size: 0.6rem;
+  color: #525252;
+  text-align: center;
+  height: 14px;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+/* ── Tooltip (reused from chart patterns) ─────────────────── */
+.ins-tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 50;
+  background: #1c1c1c;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  min-width: 100px;
+  transform: translate(-50%, calc(-100% - 12px));
+  transition: opacity 0.1s;
+}
+html:not(.dark) .ins-tooltip {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  color: #18181b;
+}
+.ins-tooltip-label { color: #737373; margin-bottom: 0.125rem; font-size: 0.6875rem; }
+html:not(.dark) .ins-tooltip-label { color: #71717a; }
+.ins-tooltip-val { font-family: 'DM Mono', monospace; font-size: 0.8125rem; font-weight: 500; }
+
+/* ── Tab pane ─────────────────────────────────────────────── */
+.ins-tab-pane { display: none; }
+.ins-tab-pane.active {
+  display: contents; /* children flow into parent grid */
+}
+
+/* ── Category bar row ─────────────────────────────────────── */
+.ins-cat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.25rem 0;
+}
+.ins-cat-name {
+  font-size: 0.8125rem;
+  color: #d4d4d4;
+  width: 9rem;
+  flex-shrink: 0;
+  truncate: true;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html:not(.dark) .ins-cat-name { color: #27272a; }
+.ins-cat-bar-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  overflow: hidden;
+}
+html:not(.dark) .ins-cat-bar-track { background: rgba(0,0,0,0.08); }
+.ins-cat-bar {
+  height: 100%;
+  border-radius: 999px;
+  transform-origin: left center;
+  animation: barGrow 0.6s cubic-bezier(0.4,0,0.2,1) both;
+}
+.ins-cat-meta {
+  font-size: 0.7rem;
+  font-family: 'DM Mono', monospace;
+  color: #737373;
+  text-align: right;
+  width: 5.5rem;
+  flex-shrink: 0;
+}
+
+/* ── Keyframes ────────────────────────────────────────────── */
+@keyframes insLineDraw {
+  from { stroke-dashoffset: var(--path-len, 2000); }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes insRingSegment {
+  from { stroke-dashoffset: var(--seg-start, 0); }
+  to   { stroke-dashoffset: var(--seg-end, 0); }
+}
+@keyframes insHeatIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes insBarUp {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}

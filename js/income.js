@@ -20,6 +20,15 @@ export async function loadIncome() {
   const uid = getCurrentUid();
   if (!uid) return;
 
+  if (window._demoMode) {
+    allIncome = [...(window._demoData?.income || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+    window._netwrthIncome = allIncome;
+    renderIncomeTable(allIncome);
+    updateIncomeSummary(allIncome);
+    window.dispatchEvent(new Event("netwrth:dataChanged"));
+    return allIncome;
+  }
+
   try {
     const q    = query(incomeCol(uid), orderBy("date", "desc"));
     const snap = await getDocs(q);
@@ -36,6 +45,7 @@ export async function loadIncome() {
 
 // ── Add ───────────────────────────────────────────────────────────────────
 export async function addIncome(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return false; }
   const uid = getCurrentUid();
   if (!uid) { showToast("Not signed in — please refresh.", "error"); return false; }
 
@@ -65,6 +75,7 @@ export async function addIncome(data) {
 
 // ── Update ────────────────────────────────────────────────────────────────
 export async function updateIncome(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return false; }
   const uid = getCurrentUid();
   if (!uid) return false;
 
@@ -93,6 +104,7 @@ export async function updateIncome(id, data) {
 
 // ── Delete ────────────────────────────────────────────────────────────────
 export async function deleteIncome(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   try {

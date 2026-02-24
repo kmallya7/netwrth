@@ -103,6 +103,14 @@ export async function loadExpenses() {
   const uid = getCurrentUid();
   if (!uid) return;
 
+  if (window._demoMode) {
+    allExpenses = [...(window._demoData?.expenses || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+    window._netwrthExpenses = allExpenses;
+    applyFilters();
+    window.dispatchEvent(new Event("netwrth:dataChanged"));
+    return allExpenses;
+  }
+
   try {
     const q    = query(expensesCol(uid), orderBy("date", "desc"));
     const snap = await getDocs(q);
@@ -118,6 +126,7 @@ export async function loadExpenses() {
 
 // ── Add ───────────────────────────────────────────────────────────────────
 export async function addExpense(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return false; }
   const uid = getCurrentUid();
   if (!uid) { showToast("Not signed in — please refresh.", "error"); return false; }
 
@@ -147,6 +156,7 @@ export async function addExpense(data) {
 
 // ── Update ────────────────────────────────────────────────────────────────
 export async function updateExpense(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return false; }
   const uid = getCurrentUid();
   if (!uid) return false;
 
@@ -173,6 +183,7 @@ export async function updateExpense(id, data) {
 
 // ── Delete ────────────────────────────────────────────────────────────────
 export async function deleteExpense(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   try {

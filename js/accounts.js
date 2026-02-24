@@ -31,6 +31,16 @@ function accountsCol(uid) {
 export async function loadAccounts() {
   const uid = getCurrentUid();
   if (!uid) return;
+
+  if (window._demoMode) {
+    allAccounts = window._demoData?.accounts || [];
+    renderAccountsList();
+    updateAccountsSummary();
+    populateAccountSelects();
+    window.dispatchEvent(new Event("netwrth:accountsChanged"));
+    return allAccounts;
+  }
+
   try {
     const q    = query(accountsCol(uid), orderBy("createdAt", "asc"));
     const snap = await getDocs(q);
@@ -47,6 +57,7 @@ export async function loadAccounts() {
 
 // ── Add ───────────────────────────────────────────────────────────────────
 export async function addAccount(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return false; }
   const uid = getCurrentUid();
   if (!uid) { showToast("Not signed in.", "error"); return false; }
   try {
@@ -72,6 +83,7 @@ export async function addAccount(data) {
 
 // ── Update ────────────────────────────────────────────────────────────────
 export async function updateAccount(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return false; }
   const uid = getCurrentUid();
   if (!uid) return false;
   try {
@@ -96,6 +108,7 @@ export async function updateAccount(id, data) {
 
 // ── Delete ────────────────────────────────────────────────────────────────
 export async function deleteAccount(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   try {

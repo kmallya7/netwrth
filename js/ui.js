@@ -30,6 +30,7 @@ const sectionTitles = {
   investments: "Investments",
   debts:       "Debts & Loans",
   reports:     "Reports & Export",
+  insights:    "Insights",
   accounts:    "Accounts",
   categories:  "Categories",
 };
@@ -50,6 +51,16 @@ export function showSection(id) {
   if (activeLink) activeLink.classList.add("active");
 
   pageTitle.textContent = sectionTitles[id] || id;
+
+  // Show Edit Layout button only on dashboard
+  const customizeBtn = document.getElementById("customizeBtn");
+  if (customizeBtn) {
+    customizeBtn.classList.toggle("hidden", id !== "dashboard");
+    // Exit customize mode when leaving dashboard
+    if (id !== "dashboard" && document.getElementById("widgetGrid")?.hasAttribute("data-customizing")) {
+      window._toggleCustomizeMode?.();
+    }
+  }
 }
 
 // Global navigation helper (used by dashboard widgets + inline onclick)

@@ -4,8 +4,34 @@
 import { auth }                                          from "./firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { demoData }                                      from "./demo-data.js";
 
 const provider = new GoogleAuthProvider();
+
+// ── Demo Mode ────────────────────────────────────────────────────────────
+window._demoMode = false;
+window._demoData = demoData;
+
+document.getElementById("tryDemoBtn")?.addEventListener("click", () => {
+  window._demoMode = true;
+
+  // Show app shell as demo user
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("appShell").classList.remove("hidden");
+  document.getElementById("appShell").classList.add("flex");
+
+  // Populate demo user profile
+  document.getElementById("userName").textContent  = "Arjun Sharma";
+  document.getElementById("userEmail").textContent = "demo@netwrth.app";
+  document.getElementById("userAvatar").src        = "https://api.dicebear.com/7.x/initials/svg?seed=AS&backgroundColor=6366f1&textColor=ffffff";
+
+  // Show demo banner
+  const banner = document.getElementById("demoBanner");
+  if (banner) banner.classList.remove("hidden");
+
+  // Fire userReady so all modules load demo data
+  window.dispatchEvent(new CustomEvent("netwrth:userReady", { detail: { uid: "demo" } }));
+});
 
 // ── Sign In ──────────────────────────────────────────────────────────────
 document.getElementById("googleSignInBtn").addEventListener("click", async () => {
@@ -38,8 +64,8 @@ onAuthStateChanged(auth, (user) => {
 
     // Broadcast login event so modules can load data
     window.dispatchEvent(new CustomEvent("netwrth:userReady", { detail: { uid: user.uid } }));
-  } else {
-    // Show auth screen, hide app
+  } else if (!window._demoMode) {
+    // Show auth screen, hide app (skip if in demo mode)
     document.getElementById("authScreen").classList.remove("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("appShell").classList.remove("flex");
@@ -48,5 +74,6 @@ onAuthStateChanged(auth, (user) => {
 
 // ── Export current user uid helper ───────────────────────────────────────
 export function getCurrentUid() {
+  if (window._demoMode) return "demo";
   return auth.currentUser?.uid ?? null;
 }

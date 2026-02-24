@@ -39,6 +39,13 @@ export async function loadBudgets() {
   const uid = getCurrentUid();
   if (!uid) return;
 
+  if (window._demoMode) {
+    allBudgets = window._demoData?.budgets || [];
+    renderBudgets(allBudgets);
+    renderBudgetOverview(allBudgets);
+    return;
+  }
+
   const snap = await getDocs(budgetsCol(uid));
   allBudgets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderBudgets(allBudgets);
@@ -110,6 +117,7 @@ function renderBudgetOverview(budgets) {
 }
 
 export async function addBudget(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await addDoc(budgetsCol(uid), {
@@ -122,6 +130,7 @@ export async function addBudget(data) {
 }
 
 export async function updateBudget(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await updateDoc(doc(db, "users", uid, "budgets", id), {
@@ -133,6 +142,7 @@ export async function updateBudget(id, data) {
 }
 
 export async function deleteBudget(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await deleteDoc(doc(db, "users", uid, "budgets", id));
@@ -158,6 +168,12 @@ function openBudgetEdit(id) {
 export async function loadGoals() {
   const uid = getCurrentUid();
   if (!uid) return;
+
+  if (window._demoMode) {
+    allGoals = window._demoData?.goals || [];
+    renderGoals(allGoals);
+    return;
+  }
 
   const snap = await getDocs(goalsCol(uid));
   allGoals   = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -205,6 +221,7 @@ function renderGoals(goals) {
 }
 
 export async function addGoal(data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await addDoc(goalsCol(uid), {
@@ -219,6 +236,7 @@ export async function addGoal(data) {
 }
 
 export async function updateGoal(id, data) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await updateDoc(doc(db, "users", uid, "goals", id), {
@@ -232,6 +250,7 @@ export async function updateGoal(id, data) {
 }
 
 export async function deleteGoal(id) {
+  if (window._demoMode) { showToast("Demo mode — sign in to save data.", "info"); return; }
   const uid = getCurrentUid();
   if (!uid) return;
   await deleteDoc(doc(db, "users", uid, "goals", id));
@@ -315,3 +334,5 @@ window.addEventListener("netwrth:userReady", async () => {
   await loadBudgets();
   await loadGoals();
 });
+
+export { allBudgets };
