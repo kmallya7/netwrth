@@ -6,6 +6,7 @@ import { allExpenses }                           from "./expenses.js";
 import { allIncome }                             from "./income.js";
 import { allInvestments }                        from "./investments.js";
 import { allDebts }                              from "./debts.js";
+import { getSettings }                           from "./settings.js";
 
 // ── Cash flow period filter state ─────────────────────────────────────────
 let cashFlowPeriod      = '12m';
@@ -373,7 +374,11 @@ const WIDGET_LABELS = {
   'debt-widget':         'Debts',
   'top-spending':        'Top Spending',
 };
-const DEFAULT_VIS = Object.fromEntries(WIDGET_KEYS.map(k => [k, true]));
+const DEFAULT_VIS = {
+  ...Object.fromEntries(WIDGET_KEYS.map(k => [k, true])),
+  'investment-widget': false,
+  'debt-widget':       false,
+};
 
 function _loadVis() {
   try { return { ...DEFAULT_VIS, ...JSON.parse(localStorage.getItem('netwrth:widgets') || '{}') }; }
@@ -447,7 +452,7 @@ window._toggleCustomizeMode = function () {
   } else {
     grid?.removeAttribute('data-customizing');
     if (btn)   btn.classList.remove('is-customizing');
-    if (label) label.textContent = 'Edit Layout';
+    if (label) label.textContent = 'Customize';
     if (_sortable) _sortable.option('disabled', true);
     const panel = document.getElementById('hiddenWidgetsPanel');
     panel?.classList.add('hidden');
@@ -964,8 +969,8 @@ function renderMonthPulse() {
   const incClr   = isDark ? '#34d399' : '#059669';
   const expClr   = isDark ? '#f87171' : '#dc2626';
   const ambrClr  = isDark ? '#fbbf24' : '#d97706';
-  const neutClr  = isDark ? '#737373' : '#a1a1aa';
-  const dimClr   = isDark ? '#404040' : '#c4c4c4';
+  const neutClr  = isDark ? '#a3a3a3' : '#71717a'; /* neutral-400 dark / neutral-500 light — was too dim */
+  const dimClr   = isDark ? '#737373' : '#a1a1aa'; /* was #404040 / #c4c4c4 — nearly invisible */
   const divClr   = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const mono     = `'DM Mono',monospace`;
 
@@ -999,6 +1004,24 @@ function renderMonthPulse() {
     return;
   }
 
+  // ── Plain-language insight ──────────────────────────────────────────────
+  const daysLeft  = Math.max(daysInMo - dayOfMo, 0);
+  const projSaved = curInc - projected;
+  let insightLine;
+  if (saved < 0 || (curInc > 0 && projected > curInc)) {
+    const overshoot = Math.abs(Math.round(Math.max(projected - curInc, -saved)));
+    insightLine = `At <span style="color:${expClr}">${fmt(Math.round(dailyAvg))}/day</span>, you'll overshoot income by ~<span style="color:${expClr};font-weight:600">${fmt(overshoot)}</span> this month.`;
+  } else if (rate < 20) {
+    const targetCut = daysLeft > 0 ? Math.round((curInc * 0.2 - saved) / daysLeft) : 0;
+    insightLine = targetCut > 0
+      ? `Saving <span style="color:${ambrClr};font-weight:600">${rate}%</span> of income — cut ~<span style="color:${ambrClr}">${fmt(targetCut)}/day</span> to reach 20% by month end.`
+      : `Saving <span style="color:${ambrClr};font-weight:600">${rate}%</span> of income — spending is tight this month.`;
+  } else {
+    const disp    = projSaved > 0 ? projSaved : saved;
+    const dispPct = curInc > 0 ? Math.round((disp / curInc) * 100) : rate;
+    insightLine = `Projected <span style="color:${incClr};font-weight:600">${fmt(disp)}</span> saved (<span style="color:${incClr}">${dispPct}%</span> of income) by month end.`;
+  }
+
   el.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:10px">
 
@@ -1014,17 +1037,17 @@ function renderMonthPulse() {
       <!-- Income / Spent / Saved -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
         <div>
-          <p style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Income</p>
+          <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Income</p>
           <p style="font-size:13px;font-weight:700;font-family:${mono};color:${incClr};margin:0 0 2px">${fmt(curInc)}</p>
           <p style="margin:0;line-height:1.4">${mom(curInc, lstInc, true)}</p>
         </div>
         <div>
-          <p style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Spent</p>
+          <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Spent</p>
           <p style="font-size:13px;font-weight:700;font-family:${mono};color:${expClr};margin:0 0 2px">${fmt(curExp)}</p>
           <p style="margin:0;line-height:1.4">${mom(curExp, lstExp, false)}</p>
         </div>
         <div>
-          <p style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Saved</p>
+          <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Saved</p>
           <p style="font-size:13px;font-weight:700;font-family:${mono};color:${savedClr};margin:0 0 2px">${fmt(Math.abs(saved))}</p>
           <p style="margin:0;font-size:10px;font-family:${mono};color:${rateClr}">${rate}%</p>
         </div>
@@ -1032,7 +1055,7 @@ function renderMonthPulse() {
 
       <!-- Day progress bar -->
       <div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:${neutClr};margin-bottom:5px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:${neutClr};margin-bottom:5px">
           <span>Day <strong style="color:${dayStrong};font-weight:600">${dayOfMo}</strong> of ${daysInMo}</span>
           <span>${monthPct}% through month</span>
         </div>
@@ -1045,10 +1068,12 @@ function renderMonthPulse() {
 
       <!-- Projection footer -->
       ${dailyAvg > 0 ? `
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;
-                  padding-top:7px;border-top:1px solid ${divClr}">
-        <span style="color:${neutClr};font-family:${mono}">${fmt(Math.round(dailyAvg))}/day avg</span>
-        <span style="color:${projClr};font-family:${mono};font-weight:500">~${fmt(projected)} projected</span>
+      <div style="padding-top:7px;border-top:1px solid ${divClr}">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px">
+          <span style="color:${neutClr};font-family:${mono}">${fmt(Math.round(dailyAvg))}/day avg</span>
+          <span style="color:${projClr};font-family:${mono};font-weight:500">~${fmt(projected)} projected</span>
+        </div>
+        <p style="margin:0;font-size:13px;color:${neutClr};line-height:1.5">${insightLine}</p>
       </div>` : ''}
 
     </div>`;
@@ -1078,11 +1103,11 @@ function renderInvestmentWidget() {
     <div class="flex justify-between items-start mb-3">
       <div>
         <p class="text-xl font-mono font-bold">${formatINR(totalValue)}</p>
-        <p class="text-xs text-neutral-500 mt-0.5">Portfolio value</p>
+        <p class="text-xs text-neutral-400 mt-0.5">Portfolio value</p>
       </div>
       <div class="text-right">
         <p class="font-mono text-sm font-semibold ${gainCls}">${gain >= 0 ? '+' : ''}${formatINR(gain)}</p>
-        <p class="text-xs text-neutral-500">${gain >= 0 ? '+' : ''}${gainPct}% return</p>
+        <p class="text-xs text-neutral-400">${gain >= 0 ? '+' : ''}${gainPct}% return</p>
       </div>
     </div>
     <div class="space-y-1">
@@ -1116,15 +1141,31 @@ function renderDebtWidget() {
   const pct           = totalOriginal ? Math.round(((totalOriginal - totalOwed) / totalOriginal) * 100) : 0;
   const top           = [...allDebts].sort((a, b) => (b.remaining || 0) - (a.remaining || 0)).slice(0, 3);
 
+  // ── Debt insight: most-progressed active debt ──────────────────────────
+  const debtStar = [...allDebts]
+    .filter(d => d.total > 0 && d.remaining > 0)
+    .map(d => ({ ...d, paidPct: Math.round(((d.total - d.remaining) / d.total) * 100) }))
+    .sort((a, b) => b.paidPct - a.paidPct)[0];
+  let debtInsight = '';
+  if (debtStar) {
+    if (debtStar.dueDate) {
+      const msLeft     = new Date(debtStar.dueDate) - new Date();
+      const monthsLeft = Math.max(1, Math.round(msLeft / (1000 * 60 * 60 * 24 * 30.44)));
+      debtInsight = `<span class="text-emerald-400 font-medium">${debtStar.name}</span>: ${debtStar.paidPct}% paid — ${monthsLeft} month${monthsLeft !== 1 ? 's' : ''} to go.`;
+    } else {
+      debtInsight = `<span class="text-emerald-400 font-medium">${debtStar.name}</span>: ${debtStar.paidPct}% cleared — ${formatINR(debtStar.remaining)} remaining.`;
+    }
+  }
+
   el.innerHTML = `
     <div class="flex justify-between items-start mb-2">
       <div>
         <p class="text-xl font-mono font-bold text-red-400">${formatINR(totalOwed)}</p>
-        <p class="text-xs text-neutral-500 mt-0.5">Total outstanding</p>
+        <p class="text-xs text-neutral-400 mt-0.5">Total outstanding</p>
       </div>
       <div class="text-right">
         <p class="font-mono text-sm font-semibold text-emerald-400">${pct}%</p>
-        <p class="text-xs text-neutral-500">paid off</p>
+        <p class="text-xs text-neutral-400">paid off</p>
       </div>
     </div>
     <div class="h-1.5 rounded-full bg-neutral-800 overflow-hidden mb-3 budget-bar-track">
@@ -1143,7 +1184,8 @@ function renderDebtWidget() {
           </div>
         </div>`;
       }).join('')}
-    </div>`;
+    </div>
+    ${debtInsight ? `<p class="text-xs mt-3 pt-3 border-t border-neutral-800 text-neutral-400">${debtInsight}</p>` : ''}`;
 }
 
 // ── Top Spending ───────────────────────────────────────────────────────────
@@ -1163,10 +1205,10 @@ function renderTopSpending() {
   el.innerHTML = expenses.map((e, i) => `
     <div class="flex items-center gap-2.5 py-1.5 cursor-pointer hover:bg-neutral-800/30 rounded-lg px-1.5 -mx-1.5 transition"
          onclick="window._editExpense('${e.id}')">
-      <span class="text-neutral-600 font-mono text-xs w-3 shrink-0">${i + 1}</span>
+      <span class="text-neutral-400 font-mono text-xs w-3 shrink-0">${i + 1}</span>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium truncate">${e.description || '—'}</p>
-        <p class="text-xs text-neutral-500">${e.category || ''}</p>
+        <p class="text-xs text-neutral-400">${e.category || ''}</p>
         <div class="mt-1 h-0.5 rounded-full bg-neutral-800 overflow-hidden">
           <div class="h-full rounded-full bg-red-400/60" style="width:${Math.round((e.amount / maxAmt) * 100)}%"></div>
         </div>
@@ -1434,8 +1476,9 @@ export function refreshDashboard() {
       qsSaved.className   = `quick-stat-value ${saved >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
     }
     if (qsRate) {
+      const target = getSettings().savingsRateTarget;
       qsRate.textContent = `${rate}%`;
-      qsRate.className   = `quick-stat-value ${rate >= 20 ? 'text-emerald-400' : rate >= 10 ? 'text-amber-400' : 'text-red-400'}`;
+      qsRate.className   = `quick-stat-value ${rate >= target ? 'text-emerald-400' : rate >= target / 2 ? 'text-amber-400' : 'text-red-400'}`;
     }
   }
 
@@ -1465,8 +1508,8 @@ export function refreshDashboard() {
     return inc > 0 ? Math.round(((inc - exp) / inc) * 100) : 0;
   });
 
-  const nwTrending  = spkNW[6]   >= spkNW[0];
-  const rateTrending = spkRate[6] >= 20;
+  const nwTrending   = spkNW[6]   >= spkNW[0];
+  const rateTrending = spkRate[6] >= getSettings().savingsRateTarget;
   renderSparkline('spkNetWorth', spkNW,   nwTrending  ? spkIncClr : spkExpClr);
   renderSparkline('spkIncome',   spkInc,  spkIncClr);
   renderSparkline('spkExpenses', spkExp,  spkExpClr);
@@ -1509,7 +1552,7 @@ export function refreshDashboard() {
           <span class="shrink-0 text-base">${tx._type === "expense" ? "↓" : "↑"}</span>
           <div class="min-w-0">
             <p class="text-sm font-medium truncate">${label}</p>
-            <p class="text-xs text-neutral-500">${date}${sub ? " · " + sub : ""}</p>
+            <p class="text-xs text-neutral-400">${date}${sub ? " · " + sub : ""}</p>
           </div>
         </div>
         <span class="tx-amount font-mono text-sm ${amtCls} shrink-0 ml-3">${sign}${formatINR(tx.amount)}</span>
@@ -1519,3 +1562,9 @@ export function refreshDashboard() {
 
 // ── Reactivity ────────────────────────────────────────────────────────────
 window.addEventListener("netwrth:dataChanged", refreshDashboard);
+
+window.addEventListener("netwrth:settingsChanged", ({ detail: { key } }) => {
+  if (['savingsRateTarget', 'numberFormat', 'netWorthBasis'].includes(key)) {
+    refreshDashboard();
+  }
+});

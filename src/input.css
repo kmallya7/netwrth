@@ -33,24 +33,39 @@
 
   /* ── Cards ────────────────────────────────────────────────────────────── */
   .card {
-    @apply bg-neutral-900 border border-neutral-800 rounded-2xl p-4;
+    @apply border rounded-2xl p-4;
+    background-color: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.07);
   }
   .card-title {
-    @apply text-sm font-semibold text-neutral-300;
+    @apply text-[17px] font-semibold;
+    color: #f5f5f5; /* neutral-100 in dark — light mode overridden below */
+  }
+  .section-subheading {
+    @apply text-[17px] font-semibold;
+    color: #e5e5e5; /* neutral-200 in dark — light mode overridden below */
   }
 
   /* ── Stat Cards ───────────────────────────────────────────────────────── */
   .stat-card {
     @apply card space-y-1;
   }
+  .stat-card--hero {
+    border-left: 2px solid rgba(16, 185, 129, 0.35);
+  }
   .stat-label {
-    @apply text-xs text-neutral-500 font-medium uppercase tracking-wide;
+    @apply text-[13px] font-medium;
+    color: #a3a3a3; /* neutral-400 — light mode overridden below */
   }
   .stat-value {
     @apply text-2xl font-mono font-semibold;
   }
+  .stat-value--hero {
+    @apply text-4xl;
+  }
   .stat-delta {
-    @apply text-xs text-neutral-500;
+    @apply text-xs;
+    color: #a3a3a3; /* neutral-400 — light mode overridden below */
   }
   .stat-delta.positive { @apply text-emerald-500; }
   .stat-delta.negative { @apply text-red-400; }
@@ -83,7 +98,9 @@
     @apply fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4;
   }
   .modal-box {
-    @apply w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl;
+    @apply w-full max-w-md rounded-2xl shadow-2xl;
+    background-color: #1e1e1e;
+    border: 1px solid rgba(255, 255, 255, 0.07);
   }
   .modal-header {
     @apply flex items-center justify-between px-5 py-4 border-b border-neutral-800;
@@ -331,6 +348,7 @@ body, aside, header, main,
    cubic-bezier(0.34, 1.2, 0.64, 1) overshoots y=1 → produces the bounce
    ═══════════════════════════════════════════════════════════════════════════ */
 .card, .stat-card {
+  background-color: #1e1e1e;
   border-color: rgba(255, 255, 255, 0.07);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
@@ -398,8 +416,9 @@ body, aside, header, main,
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Body & layout */
+#mainContent                     { background-color: #161616; }
 html:not(.dark) body             { background-color: #f4f4f5; color: #18181b; }
-html:not(.dark) main             { background-color: #f4f4f5; }
+html:not(.dark) #mainContent     { background-color: #f4f4f5; }
 html:not(.dark) #pageTitle       { color: #18181b; }
 html:not(.dark) #pageSubtitle    { color: #71717a; }
 
@@ -453,10 +472,11 @@ html:not(.dark) .stat-card::before {
   background: linear-gradient(90deg,
     transparent 10%, rgba(16, 185, 129, 0.25) 50%, transparent 90%);
 }
-html:not(.dark) .card-title  { color: #3f3f46; }
-html:not(.dark) .stat-label  { color: #71717a; }
-html:not(.dark) .stat-value  { color: #18181b; }
-html:not(.dark) .stat-delta  { color: #a1a1aa; }
+html:not(.dark) .card-title        { color: #3f3f46; }
+html:not(.dark) .section-subheading { color: #3f3f46; }
+html:not(.dark) .stat-label        { color: #71717a; }
+html:not(.dark) .stat-value        { color: #18181b; }
+html:not(.dark) .stat-delta        { color: #a1a1aa; }
 html:not(.dark) .stat-delta.positive { color: #059669; }
 html:not(.dark) .stat-delta.negative { color: #dc2626; }
 
@@ -1123,7 +1143,7 @@ html:not(.dark) .exp-search-icon              { color: #a1a1aa; }
   border-radius: 5px;
   border: none;
   background: rgba(255,255,255,0.04);
-  color: #525252;
+  color: #737373; /* up from #525252 — readable at 10px without hovering */
   font-size: 10px;
   font-weight: 500;
   font-family: 'DM Mono', monospace;
@@ -1476,7 +1496,7 @@ html:not(.dark) .widget-hide-btn:hover { background: rgba(220, 38, 38, 0.18); }
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  color: #525252;
+  color: #737373;
   background: transparent;
   border: none;
   padding: 0;
@@ -1486,14 +1506,15 @@ html:not(.dark) .widget-hide-btn:hover { background: rgba(220, 38, 38, 0.18); }
 }
 .widget-collapse-btn:hover {
   background: rgba(255, 255, 255, 0.07);
-  color: #a3a3a3;
+  color: #d4d4d4;
 }
 .widget-collapse-chevron {
   display: block;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .widget-collapse-chevron.rotated { transform: rotate(-90deg); }
-html:not(.dark) .widget-collapse-btn:hover { background: rgba(0,0,0,0.06); color: #71717a; }
+html:not(.dark) .widget-collapse-btn { color: #a3a3a3; }
+html:not(.dark) .widget-collapse-btn:hover { background: rgba(0,0,0,0.06); color: #525252; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DRAG TO REORDER — SortableJS drag states & handle
@@ -1558,20 +1579,21 @@ html:not(.dark) .ins-period-btn:hover { background: rgba(0,0,0,0.05); color: #27
   border-radius: 0.5rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #737373;
+  color: #a3a3a3; /* up from #737373 — inactive tabs readable, not invisible */
   transition: color 0.15s, background-color 0.15s;
   white-space: nowrap;
 }
 .ins-tab-btn:hover { color: #e5e5e5; background: rgba(255,255,255,0.05); }
 .ins-tab-btn.active { background: #262626; color: #f5f5f5; }
+html:not(.dark) .ins-tab-btn { color: #71717a; }
 html:not(.dark) .ins-tab-btn:hover { background: rgba(0,0,0,0.05); color: #27272a; }
 html:not(.dark) .ins-tab-btn.active { background: #e4e4e7; color: #18181b; }
 
 /* ── Chart card ───────────────────────────────────────────── */
 .ins-chart-title {
-  font-size: 0.8125rem;
+  font-size: 0.875rem; /* 14px — up from 13px */
   font-weight: 600;
-  color: #d4d4d4;
+  color: #e5e5e5; /* neutral-200 — up from neutral-300 */
 }
 html:not(.dark) .ins-chart-title { color: #27272a; }
 .ins-chart-subtitle {
@@ -1714,4 +1736,202 @@ html:not(.dark) .ins-cat-bar-track { background: rgba(0,0,0,0.08); }
 @keyframes insBarUp {
   from { transform: scaleY(0); }
   to   { transform: scaleY(1); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACCENT COLOR SYSTEM
+   The --color-accent CSS custom property is set by settings.js on :root.
+   These rules override the hardcoded emerald defaults so the full UI
+   responds to the user's chosen accent color.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --color-accent:     #10b981;   /* emerald-500 default */
+  --color-accent-rgb: 16, 185, 129;
+}
+
+/* Nav active state */
+.nav-link.active {
+  background-color: rgba(var(--color-accent-rgb), 0.09) !important;
+  color: var(--color-accent) !important;
+}
+.nav-link.active .nav-icon {
+  color: var(--color-accent) !important;
+}
+
+/* Primary buttons */
+.btn-primary {
+  background-color: var(--color-accent) !important;
+}
+#quickAddBtn {
+  background-color: var(--color-accent) !important;
+}
+
+/* Stat card hero border */
+.stat-card--hero {
+  border-left-color: rgba(var(--color-accent-rgb), 0.35) !important;
+}
+
+/* Focus rings */
+.form-input:focus,
+.select-input:focus {
+  --tw-ring-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 1px var(--color-accent) !important;
+}
+
+/* Positive stat delta */
+.stat-delta.positive {
+  color: var(--color-accent) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.settings-section-heading {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #737373; /* neutral-500 */
+  padding: 0.25rem 0 0.5rem;
+  margin-top: 1rem;
+}
+
+.settings-bucket {
+  padding: 0 !important; /* override card padding — rows handle their own */
+  overflow: hidden;
+}
+
+.settings-bucket-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-bucket-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #f5f5f5;
+  letter-spacing: 0.01em;
+}
+
+.settings-bucket-icon {
+  color: var(--color-accent);
+  opacity: 0.85;
+}
+
+.setting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.setting-row:last-child {
+  border-bottom: none;
+}
+
+.setting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #e5e5e5;
+}
+
+.setting-desc {
+  font-size: 0.75rem;
+  color: #737373;
+  margin-top: 0.125rem;
+  line-height: 1.4;
+}
+
+.setting-control {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.setting-select {
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  background: #262626; /* neutral-800 */
+  border: 1px solid #404040; /* neutral-700 */
+  color: #e5e5e5;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.setting-select:focus {
+  border-color: var(--color-accent);
+}
+
+.setting-input-num {
+  width: 4rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.5rem;
+  background: #262626;
+  border: 1px solid #404040;
+  color: #e5e5e5;
+  font-size: 0.8125rem;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.setting-input-num:focus {
+  border-color: var(--color-accent);
+}
+
+.setting-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 8rem;
+  height: 4px;
+  border-radius: 2px;
+  background: #404040;
+  cursor: pointer;
+}
+.setting-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+}
+.setting-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: none;
+}
+
+.settings-danger-zone {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.btn-danger {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #f87171;
 }

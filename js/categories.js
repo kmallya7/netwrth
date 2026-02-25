@@ -160,6 +160,7 @@ export async function loadCategories() {
       return loadCategories();
     }
     allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    window._allCategoryData = allCategories;
     renderCategoriesTree();
     populateCategorySelects();
     window.dispatchEvent(new Event("netwrth:categoriesChanged"));

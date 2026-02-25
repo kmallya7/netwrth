@@ -1,5 +1,6 @@
 // js/ui.js
 // ─── UI Utilities: Navigation, Modals, Toasts, Dark Mode ─────────────────
+import { getSettings } from "./settings.js";
 
 // ── Sidebar Collapse Toggle ───────────────────────────────────────────────
 const sidebar       = document.getElementById("sidebar");
@@ -33,7 +34,29 @@ const sectionTitles = {
   insights:    "Insights",
   accounts:    "Accounts",
   categories:  "Categories",
+  settings:    "Settings",
 };
+
+const sectionSubtitles = {
+  expenses:    "Track where your money goes.",
+  income:      "Track all your income sources.",
+  budgets:     "Set limits and track what matters.",
+  investments: "Track your portfolio and growth.",
+  debts:       "Know what you owe and to whom.",
+  reports:     "Understand your financial picture.",
+  insights:    "Your financial picture at a glance.",
+  accounts:    "Manage your bank, cash and wallet accounts.",
+  categories:  "Customise how you classify transactions.",
+  settings:    "Personalise your netwrth experience.",
+};
+
+// IDs of all header action elements (buttons/divs in the top bar)
+const headerActionIds = [
+  "quickAddBtn",
+  "headerBtn-expenses", "headerBtn-income", "headerBtn-budgets",
+  "headerBtn-investments", "headerBtn-debts", "headerBtn-accounts",
+  "headerBtn-categories", "headerBtn-insights",
+];
 
 export function showSection(id) {
   sections.forEach(s => s.classList.add("hidden"));
@@ -51,6 +74,28 @@ export function showSection(id) {
   if (activeLink) activeLink.classList.add("active");
 
   pageTitle.textContent = sectionTitles[id] || id;
+
+  // Update subtitle: date on dashboard, tagline on other sections
+  const subtitleEl = document.getElementById("pageSubtitle");
+  if (subtitleEl) {
+    if (id === "dashboard") {
+      subtitleEl.textContent = new Date().toLocaleDateString("en-IN", {
+        weekday: "long", year: "numeric", month: "long", day: "numeric"
+      });
+    } else {
+      subtitleEl.textContent = sectionSubtitles[id] || "";
+    }
+  }
+
+  // Switch header action buttons
+  headerActionIds.forEach(aid => {
+    const el = document.getElementById(aid);
+    if (el) el.classList.add("hidden");
+  });
+  const activeAction = id === "dashboard"
+    ? document.getElementById("quickAddBtn")
+    : document.getElementById(`headerBtn-${id}`);
+  if (activeAction) activeAction.classList.remove("hidden");
 
   // Show Edit Layout button only on dashboard
   const customizeBtn = document.getElementById("customizeBtn");
@@ -73,16 +118,9 @@ navLinks.forEach(link => {
   });
 });
 
-// Show dashboard by default
-showSection("dashboard");
+// Show default landing page from settings
+showSection(getSettings().defaultLandingPage || "dashboard");
 
-// ── Date in subtitle ───────────────────────────────────────────────────────
-const subtitle = document.getElementById("pageSubtitle");
-if (subtitle) {
-  subtitle.textContent = new Date().toLocaleDateString("en-IN", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric"
-  });
-}
 
 // ── Modals ────────────────────────────────────────────────────────────────
 export function openModal(id) {
@@ -151,14 +189,19 @@ function setIncomeTab() {
 quickExpenseTab.addEventListener("click", setExpenseTab);
 quickIncomeTab.addEventListener("click", setIncomeTab);
 
-// Quick Add button — reset to expense tab + today's date
+// Quick Add button — open on user's default transaction type
 document.getElementById("quickAddBtn").addEventListener("click", () => {
-  setExpenseTab();
+  const defaultType = getSettings().defaultTransactionType || 'expense';
+  if (defaultType === 'income') {
+    setIncomeTab();
+  } else {
+    setExpenseTab();
+  }
   document.getElementById("quickDate").value = new Date().toISOString().split("T")[0];
   openModal("quickAddModal");
   // Picker needs DOM to be visible; defer slightly
   setTimeout(() => {
-    if (window._initQuickPicker) window._initQuickPicker("expense");
+    if (window._initQuickPicker) window._initQuickPicker(defaultType);
   }, 50);
 });
 
@@ -220,21 +263,25 @@ function updateThemeIcon() {
   darkToggle.title       = isDark ? "Switch to light mode" : "Switch to dark mode";
 }
 
-// Load saved preference
-if (localStorage.getItem("netwrth-theme") === "light") {
+// Load saved preference (from settings or legacy key)
+const savedTheme = getSettings().theme;
+if (savedTheme === 'light' || (savedTheme !== 'dark' && localStorage.getItem("netwrth-theme") === "light")) {
   html.classList.remove("dark");
 }
 updateThemeIcon();
 
 darkToggle.addEventListener("click", () => {
   html.classList.toggle("dark");
-  localStorage.setItem("netwrth-theme", html.classList.contains("dark") ? "dark" : "light");
+  const newTheme = html.classList.contains("dark") ? "dark" : "light";
+  localStorage.setItem("netwrth-theme", newTheme);
+  import("./settings.js").then(({ updateSetting }) => updateSetting('theme', newTheme));
   updateThemeIcon();
 });
 
 // ── Format currency ───────────────────────────────────────────────────────
 export function formatINR(amount) {
-  return new Intl.NumberFormat("en-IN", {
+  const locale = getSettings().numberFormat === 'international' ? 'en-US' : 'en-IN';
+  return new Intl.NumberFormat(locale, {
     style: "currency", currency: "INR", maximumFractionDigits: 0
   }).format(amount);
 }

@@ -7,6 +7,7 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp }
 import { getCurrentUid }                                                 from "./auth.js";
 import { showToast, formatINR, openModal, closeAllModals }              from "./ui.js";
 import { allExpenses }                                                   from "./expenses.js";
+import { getSettings }                                                   from "./settings.js";
 
 function budgetsCol(uid) { return collection(db, "users", uid, "budgets"); }
 function goalsCol(uid)   { return collection(db, "users", uid, "goals");   }
@@ -65,7 +66,8 @@ function renderBudgets(budgets) {
     const spent  = spend[b.category] || 0;
     const pct    = Math.min((spent / b.limit) * 100, 100).toFixed(0);
     const over   = spent > b.limit;
-    const barCls = over ? "bg-red-500" : pct > 75 ? "bg-amber-400" : "bg-emerald-500";
+    const threshold = getSettings().budgetAlertThreshold;
+    const barCls = over ? "bg-red-500" : pct > threshold ? "bg-amber-400" : "bg-emerald-500";
 
     return `
       <div class="card">
@@ -100,7 +102,8 @@ function renderBudgetOverview(budgets) {
     const spent  = spend[b.category] || 0;
     const pct    = Math.min((spent / b.limit) * 100, 100).toFixed(0);
     const over   = spent > b.limit;
-    const barCls = over ? "bg-red-500" : pct > 75 ? "bg-amber-400" : "bg-emerald-500";
+    const threshold = getSettings().budgetAlertThreshold;
+    const barCls = over ? "bg-red-500" : pct > threshold ? "bg-amber-400" : "bg-emerald-500";
     return `
       <div class="budget-overview-row cursor-pointer"
            onclick="window._navigateTo('budgets')" title="View all budgets">
@@ -114,6 +117,36 @@ function renderBudgetOverview(budgets) {
         </div>
       </div>`;
   }).join("");
+
+  // ── Budget insight: most at-risk category ──────────────────────────────
+  const now2      = new Date();
+  const dayOfMo2  = now2.getDate();
+  const daysLeft2 = new Date(now2.getFullYear(), now2.getMonth() + 1, 0).getDate() - dayOfMo2;
+  const scored    = budgets
+    .filter(b => b.limit > 0)
+    .map(b => ({ ...b, spent: spend[b.category] || 0, ratio: (spend[b.category] || 0) / b.limit }))
+    .sort((a, b) => b.ratio - a.ratio);
+  const worst = scored[0];
+  if (worst && worst.ratio > 0) {
+    let insightHtml = '';
+    if (worst.ratio >= 1) {
+      const overBy = Math.round(worst.spent - worst.limit);
+      insightHtml = `<p class="text-xs mt-3 pt-3 border-t border-neutral-800 text-neutral-400">
+        <span class="text-red-400 font-medium">${worst.category}</span> is over budget by ${formatINR(overBy)}.
+      </p>`;
+    } else if (worst.ratio > 0.65 && dayOfMo2 > 0) {
+      const dailyRate = worst.spent / dayOfMo2;
+      if (dailyRate > 0) {
+        const daysToHit = Math.floor((worst.limit - worst.spent) / dailyRate);
+        if (daysToHit >= 0 && daysToHit < daysLeft2) {
+          insightHtml = `<p class="text-xs mt-3 pt-3 border-t border-neutral-800 text-neutral-400">
+            <span class="text-amber-400 font-medium">${worst.category}</span> hits its limit in ~${daysToHit} day${daysToHit !== 1 ? 's' : ''} at current pace.
+          </p>`;
+        }
+      }
+    }
+    if (insightHtml) overview.innerHTML += insightHtml;
+  }
 }
 
 export async function addBudget(data) {
@@ -333,6 +366,13 @@ window._deleteGoal   = deleteGoal;
 window.addEventListener("netwrth:userReady", async () => {
   await loadBudgets();
   await loadGoals();
+});
+
+window.addEventListener("netwrth:settingsChanged", ({ detail: { key } }) => {
+  if (key === "budgetAlertThreshold" || key === "numberFormat") {
+    renderBudgets(allBudgets);
+    renderBudgetOverview(allBudgets);
+  }
 });
 
 export { allBudgets };

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="dist/output.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body class="bg-neutral-950 text-neutral-100 font-sans antialiased">
 
@@ -112,6 +112,12 @@
           <span class="nav-label">Categories</span>
         </a>
 
+        <p class="px-2 pt-4 pb-1 text-xs font-medium text-neutral-500 uppercase tracking-widest nav-section-label">Preferences</p>
+        <a href="#" class="nav-link" data-section="settings" title="Settings">
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <span class="nav-label">Settings</span>
+        </a>
+
       </nav>
 
       <!-- User Profile -->
@@ -129,7 +135,7 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto bg-neutral-950">
+    <main class="flex-1 overflow-y-auto" id="mainContent">
 
       <!-- Demo Banner -->
       <div id="demoBanner" class="hidden sticky top-0 z-20 flex items-center justify-between gap-3 px-5 py-2.5 bg-indigo-600/20 border-b border-indigo-500/30 text-indigo-300 text-xs">
@@ -144,21 +150,46 @@
       </div>
 
       <!-- Top Bar -->
-      <header class="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur border-b border-neutral-800 px-6 py-3 flex items-center justify-between">
+      <header class="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur border-b border-neutral-800 px-6 py-2.5 flex items-center justify-between">
         <div>
-          <h2 id="pageTitle" class="text-base font-semibold">Dashboard</h2>
-          <p id="pageSubtitle" class="text-xs text-neutral-500" id="todayDate"></p>
+          <h2 id="pageTitle" class="text-xl font-bold">Dashboard</h2>
+          <p id="pageSubtitle" class="text-[13px] text-neutral-500" id="todayDate"></p>
         </div>
         <div class="flex items-center gap-3">
           <button id="darkModeToggle" class="text-neutral-400 hover:text-neutral-100 transition text-lg" title="Toggle dark mode">◐</button>
           <button id="customizeBtn" onclick="window._toggleCustomizeMode()"
-                  class="hidden flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition px-3 py-1.5 rounded-lg hover:bg-neutral-800/50">
+                  class="hidden flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-100 transition px-3 py-1.5 rounded-lg border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/60"
+                  title="Hide, reorder, or collapse dashboard widgets">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>
-            <span id="customizeBtnLabel">Edit Layout</span>
+            <span id="customizeBtnLabel">Customize</span>
           </button>
-          <button id="quickAddBtn" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-semibold transition">
-            + Add Transaction
-          </button>
+          <!-- Dashboard -->
+          <button id="quickAddBtn" class="header-action px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-semibold transition">+ Add Transaction</button>
+          <!-- Expenses -->
+          <button id="headerBtn-expenses" class="header-action hidden btn-primary open-modal" data-modal="addExpenseModal">+ Add Expense</button>
+          <!-- Income -->
+          <button id="headerBtn-income" class="header-action hidden btn-primary open-modal" data-modal="addIncomeModal">+ Add Income</button>
+          <!-- Budgets -->
+          <div id="headerBtn-budgets" class="header-action hidden flex gap-2">
+            <button class="btn-secondary open-modal" data-modal="addGoalModal">+ Goal</button>
+            <button class="btn-primary open-modal" data-modal="addBudgetModal">+ Budget</button>
+          </div>
+          <!-- Investments -->
+          <button id="headerBtn-investments" class="header-action hidden btn-primary open-modal" data-modal="addInvestmentModal">+ Add Investment</button>
+          <!-- Debts -->
+          <button id="headerBtn-debts" class="header-action hidden btn-primary open-modal" data-modal="addDebtModal">+ Add Debt</button>
+          <!-- Accounts -->
+          <button id="headerBtn-accounts" class="header-action hidden btn-primary open-modal" data-modal="addAccountModal">+ Add Account</button>
+          <!-- Categories -->
+          <button id="headerBtn-categories" class="header-action hidden btn-primary open-modal" data-modal="addCategoryModal">+ Add Category</button>
+          <!-- Insights period filter -->
+          <div id="headerBtn-insights" class="header-action hidden flex items-center gap-1">
+            <button class="ins-period-btn active" data-period="3m"  onclick="window._insSetPeriod('3m')">3M</button>
+            <button class="ins-period-btn"         data-period="6m"  onclick="window._insSetPeriod('6m')">6M</button>
+            <button class="ins-period-btn"         data-period="1y"  onclick="window._insSetPeriod('1y')">1Y</button>
+            <button class="ins-period-btn"         data-period="2y"  onclick="window._insSetPeriod('2y')">2Y</button>
+            <button class="ins-period-btn"         data-period="all" onclick="window._insSetPeriod('all')">All</button>
+          </div>
         </div>
       </header>
 
@@ -167,17 +198,17 @@
       <!-- DASHBOARD -->
       <section id="section-dashboard" class="section p-6 space-y-6">
 
-        <div id="statCardsGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="statCardsGrid" class="grid grid-cols-2 lg:grid-cols-5 gap-4">
 
           <!-- Net Worth -->
-          <div class="stat-card cursor-pointer" onclick="window._showCardDetail('netWorth')">
+          <div class="stat-card cursor-pointer lg:col-span-2 stat-card--hero" onclick="window._showCardDetail('netWorth')">
             <div class="flex items-center justify-between">
               <p class="stat-label">Net Worth</p>
               <button id="filterBtn_netWorth" class="filter-period-btn"
                       onclick="event.stopPropagation(); window._openPeriodPicker('netWorth')"
                       title="Change period">All Time</button>
             </div>
-            <p class="stat-value" id="statNetWorth">₹0</p>
+            <p class="stat-value stat-value--hero" id="statNetWorth">₹0</p>
             <div class="flex items-end justify-between gap-2">
               <p class="stat-delta positive" id="deltaNetWorth">— this cycle</p>
               <div id="spkNetWorth" style="line-height:0;opacity:0.55;flex-shrink:0"></div>
@@ -291,7 +322,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="window._navigateTo('budgets')"
-                        class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+                        class="text-xs text-neutral-400 hover:text-emerald-400 transition">View all →</button>
                 <button class="widget-hide-btn" onclick="window._hideWidget('budget-overview')" title="Hide widget">×</button>
                 <button class="widget-collapse-btn" onclick="window._toggleCollapse('budget-overview')" title="Collapse">
                   <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -376,7 +407,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="window._navigateTo('investments')"
-                        class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+                        class="text-xs text-neutral-400 hover:text-emerald-400 transition">View all →</button>
                 <button class="widget-hide-btn" onclick="window._hideWidget('investment-widget')" title="Hide widget">×</button>
                 <button class="widget-collapse-btn" onclick="window._toggleCollapse('investment-widget')" title="Collapse">
                   <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -401,7 +432,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="window._navigateTo('debts')"
-                        class="text-xs text-neutral-500 hover:text-emerald-400 transition">View all →</button>
+                        class="text-xs text-neutral-400 hover:text-emerald-400 transition">View all →</button>
                 <button class="widget-hide-btn" onclick="window._hideWidget('debt-widget')" title="Hide widget">×</button>
                 <button class="widget-collapse-btn" onclick="window._toggleCollapse('debt-widget')" title="Collapse">
                   <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -425,7 +456,7 @@
                 <h3 class="card-title">Top Spending</h3>
               </div>
               <div class="flex items-center gap-2">
-                <p class="text-xs text-neutral-500" id="topSpendingPeriod"></p>
+                <p class="text-xs text-neutral-400" id="topSpendingPeriod"></p>
                 <button class="widget-hide-btn" onclick="window._hideWidget('top-spending')" title="Hide widget">×</button>
                 <button class="widget-collapse-btn" onclick="window._toggleCollapse('top-spending')" title="Collapse">
                   <svg class="widget-collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -448,13 +479,6 @@
 
       <!-- EXPENSES -->
       <section id="section-expenses" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Expenses</h3>
-            <p class="text-sm text-neutral-500">Track where your money goes.</p>
-          </div>
-          <button class="btn-primary open-modal" data-modal="addExpenseModal">+ Add Expense</button>
-        </div>
 
         <!-- Filters -->
         <div class="flex gap-3 flex-wrap items-center">
@@ -520,13 +544,6 @@
 
       <!-- INCOME -->
       <section id="section-income" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Income</h3>
-            <p class="text-sm text-neutral-500">Track all your income sources.</p>
-          </div>
-          <button class="btn-primary open-modal" data-modal="addIncomeModal">+ Add Income</button>
-        </div>
 
         <div class="grid grid-cols-3 gap-4">
           <div class="stat-card"><p class="stat-label">Total Income</p><p class="stat-value" id="incTotal">₹0</p></div>
@@ -555,26 +572,16 @@
 
       <!-- BUDGETS & GOALS -->
       <section id="section-budgets" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Budgets & Goals</h3>
-            <p class="text-sm text-neutral-500">Set limits and track what matters.</p>
-          </div>
-          <div class="flex gap-2">
-            <button class="btn-secondary open-modal" data-modal="addGoalModal">+ Goal</button>
-            <button class="btn-primary open-modal" data-modal="addBudgetModal">+ Budget</button>
-          </div>
-        </div>
 
         <div>
-          <h4 class="text-sm font-medium text-neutral-400 mb-3">Monthly Budgets</h4>
+          <h4 class="section-subheading mb-3">Monthly Budgets</h4>
           <div id="budgetsList" class="space-y-3">
             <p class="text-sm text-neutral-500">No budgets set.</p>
           </div>
         </div>
 
         <div>
-          <h4 class="text-sm font-medium text-neutral-400 mb-3">Savings Goals</h4>
+          <h4 class="section-subheading mb-3">Savings Goals</h4>
           <div id="goalsList" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <p class="text-sm text-neutral-500">No goals set.</p>
           </div>
@@ -583,13 +590,6 @@
 
       <!-- INVESTMENTS -->
       <section id="section-investments" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Investments</h3>
-            <p class="text-sm text-neutral-500">Track your portfolio and growth.</p>
-          </div>
-          <button class="btn-primary open-modal" data-modal="addInvestmentModal">+ Add Investment</button>
-        </div>
 
         <div class="grid grid-cols-3 gap-4">
           <div class="stat-card"><p class="stat-label">Portfolio Value</p><p class="stat-value" id="invTotal">₹0</p></div>
@@ -618,13 +618,6 @@
 
       <!-- DEBTS & LOANS -->
       <section id="section-debts" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Debts & Loans</h3>
-            <p class="text-sm text-neutral-500">Know what you owe and to whom.</p>
-          </div>
-          <button class="btn-primary open-modal" data-modal="addDebtModal">+ Add Debt</button>
-        </div>
 
         <div class="grid grid-cols-3 gap-4">
           <div class="stat-card"><p class="stat-label">Total Owed</p><p class="stat-value text-red-400" id="debtTotal">₹0</p></div>
@@ -639,13 +632,6 @@
 
       <!-- ACCOUNTS -->
       <section id="section-accounts" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Accounts</h3>
-            <p class="text-sm text-neutral-500">Manage your bank, cash, card and wallet accounts.</p>
-          </div>
-          <button class="btn-primary open-modal" data-modal="addAccountModal">+ Add Account</button>
-        </div>
 
         <div class="grid grid-cols-3 gap-4">
           <div class="stat-card">
@@ -669,13 +655,6 @@
 
       <!-- CATEGORIES -->
       <section id="section-categories" class="section hidden p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Categories</h3>
-            <p class="text-sm text-neutral-500">Customise how you classify income and expenses.</p>
-          </div>
-          <button class="btn-primary open-modal" data-modal="addCategoryModal">+ Add Category</button>
-        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div class="card space-y-2">
@@ -706,21 +685,6 @@
            INSIGHTS
       ═══════════════════════════════════════════════════ -->
       <section id="section-insights" class="section hidden p-6 space-y-5">
-
-        <!-- Header + Period Filter -->
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 class="text-lg font-semibold">Insights</h3>
-            <p class="text-sm text-neutral-500">Your financial picture at a glance.</p>
-          </div>
-          <div class="flex items-center gap-1 flex-wrap">
-            <button class="ins-period-btn active" data-period="3m"  onclick="window._insSetPeriod('3m')">3M</button>
-            <button class="ins-period-btn"         data-period="6m"  onclick="window._insSetPeriod('6m')">6M</button>
-            <button class="ins-period-btn"         data-period="1y"  onclick="window._insSetPeriod('1y')">1Y</button>
-            <button class="ins-period-btn"         data-period="2y"  onclick="window._insSetPeriod('2y')">2Y</button>
-            <button class="ins-period-btn"         data-period="all" onclick="window._insSetPeriod('all')">All</button>
-          </div>
-        </div>
 
         <!-- Sub-tabs -->
         <div class="flex items-center gap-1 border-b border-neutral-800 pb-0 -mb-1 overflow-x-auto">
@@ -855,10 +819,6 @@
       </section>
 
       <section id="section-reports" class="section hidden p-6 space-y-6">
-        <div>
-          <h3 class="text-lg font-semibold">Reports & Export</h3>
-          <p class="text-sm text-neutral-500">Understand your financial picture. Export your data.</p>
-        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div class="card space-y-3">
@@ -889,6 +849,267 @@
             <p class="text-sm text-neutral-500">No data available.</p>
           </div>
         </div>
+      </section>
+
+      <!-- ══════════════════════════════════════════════════
+           SETTINGS
+      ══════════════════════════════════════════════════ -->
+      <section id="section-settings" class="section hidden p-6 space-y-4">
+
+        <!-- ── Appearance & Layout ──────────────────────────────────────── -->
+        <div class="card settings-bucket">
+          <div class="settings-bucket-header">
+            <span class="settings-bucket-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+            <span class="settings-bucket-title">Appearance & Layout</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Theme</div>
+              <div class="setting-desc">Controls light/dark appearance across the entire app.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsTheme" class="setting-select">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="system">System</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Accent Color</div>
+              <div class="setting-desc">Primary color used for buttons, active states, and highlights.</div>
+            </div>
+            <div class="setting-control">
+              <div id="settingsAccentSwatches" class="flex items-center gap-2"></div>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Font Size</div>
+              <div class="setting-desc">Scales the base text size across the app.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsFontSize" class="setting-select">
+                <option value="small">Small (13px)</option>
+                <option value="medium">Medium (15px)</option>
+                <option value="large">Large (17px)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Default Landing Page</div>
+              <div class="setting-desc">Which section opens first when you log in.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsLandingPage" class="setting-select">
+                <option value="dashboard">Dashboard</option>
+                <option value="expenses">Expenses</option>
+                <option value="insights">Insights</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Money Model & Defaults ───────────────────────────────────── -->
+        <div class="card settings-bucket">
+          <div class="settings-bucket-header">
+            <span class="settings-bucket-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg></span>
+            <span class="settings-bucket-title">Money Model & Defaults</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Fiscal Year Start</div>
+              <div class="setting-desc">Sets the start month for "This FY" filters and yearly reports. Indian FY runs April–March.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsFiscalYear" class="setting-select">
+                <option value="4">April (Indian FY)</option>
+                <option value="1">January (Calendar Year)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Salary Credit Date</div>
+              <div class="setting-desc">Day of the month your salary arrives. Anchors budget cycles and "days left in cycle" calculations.</div>
+            </div>
+            <div class="setting-control">
+              <input type="number" id="settingsSalaryCreditDate"
+                     class="setting-input-num"
+                     min="1" max="28" step="1" />
+              <span class="text-xs text-neutral-500">of month</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Net Worth Basis</div>
+              <div class="setting-desc">Whether to include Investment-type accounts (EPF, PPF, NPS) in your net worth total.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsNetWorthBasis" class="setting-select">
+                <option value="all">All accounts</option>
+                <option value="liquid">Liquid only</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Default Transaction Type</div>
+              <div class="setting-desc">Which tab the quick-add form opens on by default.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsDefaultTxType" class="setting-select">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Notifications & Alerts ───────────────────────────────────── -->
+        <div class="card settings-bucket">
+          <div class="settings-bucket-header">
+            <span class="settings-bucket-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+            <span class="settings-bucket-title">Notifications & Alerts</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Budget Warning Threshold</div>
+              <div class="setting-desc">Budget bars turn amber when spending reaches this % of the limit. Below this = green; at 100% = red.</div>
+            </div>
+            <div class="setting-control gap-3">
+              <input type="range" id="settingsBudgetThreshold"
+                     class="setting-slider"
+                     min="50" max="95" step="5" />
+              <span id="settingsBudgetThresholdDisplay" class="text-sm font-mono text-neutral-300 w-8 text-right">80%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Insights & Reports ────────────────────────────────────────── -->
+        <div class="card settings-bucket">
+          <div class="settings-bucket-header">
+            <span class="settings-bucket-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="m6 16 4-8 4 6 2-4 4 6"/></svg></span>
+            <span class="settings-bucket-title">Insights & Reports</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Savings Rate Target</div>
+              <div class="setting-desc">Your monthly savings rate goal. Used to color the savings KPI green/amber/red across the app.</div>
+            </div>
+            <div class="setting-control">
+              <input type="number" id="settingsSavingsTarget"
+                     class="setting-input-num"
+                     min="1" max="90" step="1" />
+              <span class="text-xs text-neutral-500">%</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Default Report Period</div>
+              <div class="setting-desc">Period the Insights section opens on by default.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsReportRange" class="setting-select">
+                <option value="this-month">This Month</option>
+                <option value="last-month">Last Month</option>
+                <option value="this-fy">This FY</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Exclude from Reports</div>
+              <div class="setting-desc">Categories excluded from spend analysis in Insights. Useful for transfers and reimbursables.</div>
+            </div>
+            <div class="setting-control">
+              <div id="settingsIgnoreCats" class="flex flex-col gap-2 max-h-36 overflow-y-auto">
+                <p class="text-xs text-neutral-500">Loading categories…</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Localization ───────────────────────────────────────────────── -->
+        <div class="card settings-bucket">
+          <div class="settings-bucket-header">
+            <span class="settings-bucket-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></span>
+            <span class="settings-bucket-title">Localization</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Number Format</div>
+              <div class="setting-desc">How currency amounts are formatted throughout the app.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsNumberFormat" class="setting-select">
+                <option value="indian">Indian (₹1,23,456)</option>
+                <option value="international">International (₹1,234,56)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Date Format</div>
+              <div class="setting-desc">How dates appear in transaction lists and exports.</div>
+            </div>
+            <div class="setting-control">
+              <select id="settingsDateFormat" class="setting-select">
+                <option value="DD-MMM-YYYY">23-Feb-2026</option>
+                <option value="DD/MM/YYYY">23/02/2026</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Data & Privacy ────────────────────────────────────────────── -->
+        <div class="card settings-bucket settings-danger-zone">
+          <div class="settings-bucket-header">
+            <span class="settings-bucket-icon text-red-400"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <span class="settings-bucket-title">Data & Privacy</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Export All Data</div>
+              <div class="setting-desc">Download all your transactions (expenses + income) as a CSV file.</div>
+            </div>
+            <div class="setting-control">
+              <button id="settingsExportCsvBtn" class="btn-secondary text-xs py-1.5 px-3">
+                Download CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label text-red-400">Sign Out & Clear Session</div>
+              <div class="setting-desc">Signs you out and clears all locally cached data.</div>
+            </div>
+            <div class="setting-control">
+              <button id="settingsDeleteAccountBtn" class="btn-danger">
+                Sign Out & Clear Session
+              </button>
+            </div>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -1361,6 +1582,7 @@
   <!-- Firebase SDKs -->
   <script type="module" src="js/firebase.js"></script>
   <!-- App Modules -->
+  <script type="module" src="js/settings.js"></script>
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/ui.js"></script>
   <script type="module" src="js/accounts.js"></script>

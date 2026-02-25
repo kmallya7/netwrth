@@ -8,6 +8,7 @@ import { allInvestments } from "./investments.js";
 import { allDebts }      from "./debts.js";
 import { allBudgets }    from "./budgets.js";
 import { allAccounts }   from "./accounts.js";
+import { getSettings }   from "./settings.js";
 
 // ── State ──────────────────────────────────────────────────────────────────
 let insPeriod = '1y';   // '3m' | '6m' | '1y' | '2y' | 'all'
@@ -148,7 +149,13 @@ function renderKPIStrip() {
   const { start, end } = getPeriodRange();
   const months = insPeriod === '3m' ? 3 : insPeriod === '6m' ? 6 : insPeriod === '2y' ? 24 : insPeriod === 'all' ? 24 : 12;
 
-  const exp = allExpenses.filter(e => { const d = toDate(e); return d >= start && d <= end; });
+  const ignored = getSettings().ignoredReportCategories || [];
+  const exp = allExpenses.filter(e => {
+    const d = toDate(e);
+    if (d < start || d > end) return false;
+    if (ignored.includes(e.category) || ignored.includes(e.categoryGroup)) return false;
+    return true;
+  });
   const inc = allIncome.filter(i => { const d = toDate(i); return d >= start && d <= end; });
 
   const totalExp = exp.reduce((s, e) => s + (e.amount || 0), 0);
@@ -170,7 +177,8 @@ function renderKPIStrip() {
   });
   const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
 
-  const srColor = savingsRate >= 20 ? 'positive' : savingsRate >= 10 ? 'text-amber-400' : 'negative';
+  const target  = getSettings().savingsRateTarget;
+  const srColor = savingsRate >= target ? 'positive' : savingsRate >= target / 2 ? 'text-amber-400' : 'negative';
 
   const set = (id, val) => {
     const el = document.getElementById(id);
@@ -194,7 +202,8 @@ function renderKPIStrip() {
   }
   const savDelta = document.getElementById('insKpiSavingsDelta');
   if (savDelta) {
-    savDelta.textContent = savingsRate >= 20 ? 'On track' : savingsRate >= 10 ? 'Below target' : 'Needs attention';
+    const t = getSettings().savingsRateTarget;
+    savDelta.textContent = savingsRate >= t ? `On track (${t}% goal)` : savingsRate >= t / 2 ? 'Below target' : 'Needs attention';
     savDelta.className = `stat-delta ${srColor}`;
   }
   const topCatAmt = document.getElementById('insKpiTopCatAmt');
@@ -1032,8 +1041,20 @@ window._insSetTab = (t) => {
   refreshInsights();
 };
 
+// ── Apply default report period from settings ──────────────────────────────
+function applyDefaultPeriod() {
+  const rangeDefault = getSettings().reportDateRangeDefault;
+  const periodMap = { 'this-month': '3m', 'last-month': '3m', 'this-fy': '1y' };
+  const mapped = periodMap[rangeDefault] || '1y';
+  if (insPeriod !== mapped) {
+    insPeriod = mapped;
+    updatePeriodUI();
+  }
+}
+
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 window.addEventListener('netwrth:userReady', () => {
+  applyDefaultPeriod();
   refreshInsights();
 });
 
@@ -1041,6 +1062,13 @@ window.addEventListener('netwrth:dataChanged', () => {
   const section = document.getElementById('section-insights');
   if (!section || section.classList.contains('hidden')) return;
   refreshInsights();
+});
+
+window.addEventListener('netwrth:settingsChanged', ({ detail: { key } }) => {
+  if (['savingsRateTarget', 'ignoredReportCategories', 'reportDateRangeDefault', 'numberFormat'].includes(key)) {
+    if (key === 'reportDateRangeDefault') applyDefaultPeriod();
+    refreshInsights();
+  }
 });
 
 // Re-render on navigate to Insights (theme may have changed between visits)
