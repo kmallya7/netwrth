@@ -53,19 +53,152 @@ function catBadge(category, categoryGroup) {
   return `<span class="exp-cat-badge" style="background:${col.bg};color:${col.fg}">${category || "—"}</span>`;
 }
 
-// ── Active filter state ────────────────────────────────────────────────────
-let activeMonth    = "This Month";
-let activeCategory = "";
-let activeSearch   = "";
+// ── Category metadata for filter panel ───────────────────────────────────
+const CAT_META = {
+  "Food & Dining":     { icon: "🍔", short: "Food" },
+  "Transport":         { icon: "🚗", short: "Transport" },
+  "Shopping":          { icon: "🛍️", short: "Shopping" },
+  "Bills & Utilities": { icon: "💡", short: "Bills" },
+  "Health":            { icon: "🏥", short: "Health" },
+  "Entertainment":     { icon: "🎬", short: "Fun" },
+  "Education":         { icon: "📚", short: "Study" },
+  "Other":             { icon: "📦", short: "Other" },
+};
 
-// ── Month → date range ────────────────────────────────────────────────────
-function getMonthRange(label) {
-  const now = new Date();
-  if (label === "All Time") return null;
-  if (label === "This Month")    return { from: new Date(now.getFullYear(), now.getMonth(), 1),     to: now };
-  if (label === "Last Month")    return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59) };
-  if (label === "Last 3 Months") return { from: new Date(now.getFullYear(), now.getMonth() - 3, 1), to: now };
-  return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+// ── Active filter state ────────────────────────────────────────────────────
+const _initNow        = new Date();
+let activeMonth       = `${_initNow.getFullYear()}-${_initNow.getMonth()}`; // "YYYY-M"
+let activeCategory    = "";
+let activeAccount     = "";
+let activeTitleSearch = "";
+let activeNotesSearch = "";
+
+// ── Month key → date range ────────────────────────────────────────────────
+function getMonthRange(monthKey) {
+  if (!monthKey || monthKey === "all") return null;
+  const [year, month] = monthKey.split("-").map(Number);
+  return {
+    from: new Date(year, month, 1),
+    to:   new Date(year, month + 1, 0, 23, 59, 59),
+  };
+}
+
+// ── Month Timeline renderer ───────────────────────────────────────────────
+function renderMonthTimeline() {
+  const container = document.getElementById("expMonthTimeline");
+  if (!container) return;
+
+  const now        = new Date();
+  const currentKey = `${now.getFullYear()}-${now.getMonth()}`;
+  const months     = [];
+
+  // Build last 18 months up to current
+  for (let i = 17; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth() });
+  }
+
+  const allBtn = `<button class="exp-month-item exp-month-all ${activeMonth === "all" ? "active" : ""}" data-month="all">
+    <span class="exp-month-name">All</span>
+    <span class="exp-month-year">time</span>
+  </button>`;
+
+  const monthBtns = months.map(({ year, month }) => {
+    const key       = `${year}-${month}`;
+    const isActive  = activeMonth === key;
+    const isCurrent = key === currentKey;
+    const mName     = new Date(year, month).toLocaleString("en", { month: "short" });
+    return `<button class="exp-month-item${isActive ? " active" : ""}${isCurrent ? " is-current" : ""}" data-month="${key}">
+      <span class="exp-month-name">${mName}</span>
+      <span class="exp-month-year">${year}</span>
+    </button>`;
+  }).join("");
+
+  container.innerHTML = allBtn + monthBtns;
+
+  // Scroll active item to center of the strip
+  requestAnimationFrame(() => {
+    const activeEl = container.querySelector(".active");
+    if (activeEl) {
+      container.scrollLeft =
+        activeEl.offsetLeft - (container.offsetWidth - activeEl.offsetWidth) / 2;
+    }
+  });
+}
+
+// ── Filter Panel ──────────────────────────────────────────────────────────
+let filterPanelOpen = false;
+let fpCategory = "";
+let fpAccount  = "";
+let fpTitle    = "";
+let fpNotes    = "";
+
+function renderFpCats() {
+  const container = document.getElementById("expFpCats");
+  if (!container) return;
+
+  const allBtn = `<button class="exp-fp-cat${!fpCategory ? " active" : ""}" data-fpcat="">
+    <div class="exp-fp-cat-icon exp-fp-cat-all">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+    </div>
+    <span class="exp-fp-cat-label">All</span>
+  </button>`;
+
+  const catBtns = Object.entries(CAT_META).map(([cat, meta]) => {
+    const col = CAT_COLORS[cat] || CAT_COLORS["Other"];
+    return `<button class="exp-fp-cat${fpCategory === cat ? " active" : ""}" data-fpcat="${cat}">
+      <div class="exp-fp-cat-icon" style="background:${col.bg}"><span>${meta.icon}</span></div>
+      <span class="exp-fp-cat-label">${meta.short}</span>
+    </button>`;
+  }).join("");
+
+  container.innerHTML = allBtn + catBtns;
+}
+
+function renderFpAccounts() {
+  const wrap      = document.getElementById("expFpAccountsWrap");
+  const container = document.getElementById("expFpAccounts");
+  if (!wrap || !container) return;
+
+  const accounts = [...new Set(allExpenses.map(e => e.account).filter(Boolean))].sort();
+  if (!accounts.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+
+  container.innerHTML = [
+    `<button class="exp-fp-chip${!fpAccount ? " active" : ""}" data-fpacc="">All</button>`,
+    ...accounts.map(acc =>
+      `<button class="exp-fp-chip${fpAccount === acc ? " active" : ""}" data-fpacc="${acc}">${acc}</button>`
+    ),
+  ].join("");
+}
+
+function updateFilterIndicator() {
+  const on = !!(activeCategory || activeAccount || activeTitleSearch || activeNotesSearch);
+  document.getElementById("expFilterBtn")?.classList.toggle("has-filters", on);
+}
+
+function openFilterPanel(focusTitle = false) {
+  fpCategory = activeCategory;
+  fpAccount  = activeAccount;
+  fpTitle    = activeTitleSearch;
+  fpNotes    = activeNotesSearch;
+  renderFpCats();
+  renderFpAccounts();
+  document.getElementById("expFpTitle").value = fpTitle;
+  document.getElementById("expFpNotes").value = fpNotes;
+  document.getElementById("expFilterPanel").classList.add("open");
+  document.getElementById("expFilterBtn").classList.add("active");
+  filterPanelOpen = true;
+  if (focusTitle) requestAnimationFrame(() => document.getElementById("expFpTitle").focus());
+}
+
+function closeFilterPanel() {
+  document.getElementById("expFilterPanel").classList.remove("open");
+  document.getElementById("expFilterBtn").classList.remove("active");
+  filterPanelOpen = false;
 }
 
 // ── Unified filter + render ───────────────────────────────────────────────
@@ -84,13 +217,19 @@ function applyFilters() {
       e.category === activeCategory || e.categoryGroup === activeCategory
     );
   }
-  if (activeSearch) {
-    const q = activeSearch.toLowerCase();
+  if (activeAccount) {
+    filtered = filtered.filter(e => e.account === activeAccount);
+  }
+  if (activeTitleSearch) {
+    const q = activeTitleSearch.toLowerCase();
     filtered = filtered.filter(e =>
       (e.description || "").toLowerCase().includes(q) ||
-      (e.notes       || "").toLowerCase().includes(q) ||
       (e.category    || "").toLowerCase().includes(q)
     );
+  }
+  if (activeNotesSearch) {
+    const q = activeNotesSearch.toLowerCase();
+    filtered = filtered.filter(e => (e.notes || "").toLowerCase().includes(q));
   }
 
   renderExpensesTable(filtered);
@@ -357,26 +496,77 @@ document.querySelectorAll('.open-modal[data-modal="addExpenseModal"]').forEach(b
 });
 
 // ── Filters ───────────────────────────────────────────────────────────────
-document.getElementById("expenseMonthFilter").addEventListener("change", (e) => {
-  activeMonth = e.target.value;
+
+// Month timeline click
+document.getElementById("expMonthTimeline").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-month]");
+  if (!btn) return;
+  activeMonth = btn.dataset.month;
+  renderMonthTimeline();
   applyFilters();
 });
 
-document.getElementById("expenseCategoryFilter").addEventListener("change", (e) => {
-  activeCategory = e.target.value;
-  applyFilters();
+// Filter / Search buttons toggle the panel
+document.getElementById("expFilterBtn").addEventListener("click", () => {
+  filterPanelOpen ? closeFilterPanel() : openFilterPanel();
+});
+document.getElementById("expSearchBtn").addEventListener("click", () => {
+  filterPanelOpen ? closeFilterPanel() : openFilterPanel(true);
 });
 
-const expSearchEl = document.getElementById("expenseSearch");
-if (expSearchEl) {
-  expSearchEl.addEventListener("input", (e) => {
-    activeSearch = e.target.value.trim();
-    applyFilters();
-  });
-}
+// Filter panel: category card + account chip clicks
+document.getElementById("expFilterPanel").addEventListener("click", (e) => {
+  const catBtn = e.target.closest("[data-fpcat]");
+  if (catBtn) {
+    fpCategory = catBtn.dataset.fpcat;
+    document.querySelectorAll("#expFpCats .exp-fp-cat").forEach(b =>
+      b.classList.toggle("active", b.dataset.fpcat === fpCategory)
+    );
+    return;
+  }
+  const accBtn = e.target.closest("[data-fpacc]");
+  if (accBtn) {
+    fpAccount = accBtn.dataset.fpacc;
+    document.querySelectorAll("#expFpAccounts .exp-fp-chip").forEach(b =>
+      b.classList.toggle("active", b.dataset.fpacc === fpAccount)
+    );
+  }
+});
+
+document.getElementById("expFpApply").addEventListener("click", () => {
+  fpTitle = document.getElementById("expFpTitle").value.trim();
+  fpNotes = document.getElementById("expFpNotes").value.trim();
+  activeCategory    = fpCategory;
+  activeAccount     = fpAccount;
+  activeTitleSearch = fpTitle;
+  activeNotesSearch = fpNotes;
+  applyFilters();
+  updateFilterIndicator();
+  closeFilterPanel();
+});
+
+document.getElementById("expFpReset").addEventListener("click", () => {
+  fpCategory = fpAccount = fpTitle = fpNotes = "";
+  activeCategory = activeAccount = activeTitleSearch = activeNotesSearch = "";
+  document.getElementById("expFpTitle").value = "";
+  document.getElementById("expFpNotes").value = "";
+  renderFpCats();
+  renderFpAccounts();
+  applyFilters();
+  updateFilterIndicator();
+  closeFilterPanel();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && filterPanelOpen) closeFilterPanel();
+});
 
 // ── Init & Globals ────────────────────────────────────────────────────────
-window.addEventListener("netwrth:userReady", loadExpenses);
+window.addEventListener("netwrth:userReady", () => {
+  renderMonthTimeline();
+  updateFilterIndicator();
+  loadExpenses();
+});
 window._editExpense   = openExpenseEdit;
 window._deleteExpense = deleteExpense;
 

@@ -406,6 +406,119 @@ window._toggleWidget = function (btn) {
 
 let _isCustomizing = false;
 
+// ── Widget resize — column-snap drag handles ────────────────────────────────
+const WIDGET_SIZE_CONSTRAINTS = {
+  'month-pulse':         { default: 3, min: 2, max: 6 },
+  'recent-transactions': { default: 3, min: 2, max: 6 },
+  'budget-overview':     { default: 3, min: 2, max: 6 },
+  'cashflow-chart':      { default: 6, min: 4, max: 6 },
+  'investment-widget':   { default: 3, min: 2, max: 6 },
+  'debt-widget':         { default: 3, min: 2, max: 6 },
+  'top-spending':        { default: 3, min: 2, max: 6 },
+};
+
+function _loadWidgetSizes() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('netwrth:widget-sizes') || '{}');
+    const defaults = Object.fromEntries(
+      WIDGET_KEYS.map(id => [id, WIDGET_SIZE_CONSTRAINTS[id]?.default ?? 3])
+    );
+    return { ...defaults, ...saved };
+  } catch {
+    return Object.fromEntries(WIDGET_KEYS.map(id => [id, WIDGET_SIZE_CONSTRAINTS[id]?.default ?? 3]));
+  }
+}
+
+let widgetSizes = _loadWidgetSizes();
+
+function _saveWidgetSizes() {
+  localStorage.setItem('netwrth:widget-sizes', JSON.stringify(widgetSizes));
+}
+
+function _getColSpan(card) {
+  if (card.dataset.widgetSpan) return parseInt(card.dataset.widgetSpan, 10);
+  for (let i = 1; i <= 6; i++) {
+    if (card.classList.contains(`lg:col-span-${i}`)) return i;
+  }
+  return 3;
+}
+
+function _setColSpan(card, span) {
+  card.dataset.widgetSpan = span;
+}
+
+function _applyWidgetSizes() {
+  WIDGET_KEYS.forEach(id => {
+    const card = document.querySelector(`[data-widget="${id}"]`);
+    if (!card) return;
+    const span = widgetSizes[id];
+    if (span) _setColSpan(card, span);
+  });
+}
+
+let _resizeState = null;
+
+function _onResizeStart(e) {
+  if (!_isCustomizing) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const handle = e.currentTarget;
+  const card   = handle.closest('[data-widget]');
+  const grid   = document.getElementById('widgetGrid');
+  if (!card || !grid) return;
+
+  const widgetId    = card.dataset.widget;
+  const constraints = WIDGET_SIZE_CONSTRAINTS[widgetId] || { min: 2, max: 6 };
+  const startSpan   = _getColSpan(card);
+  const gap         = 16; // gap-4 = 16px
+  const colWidth    = (grid.offsetWidth - 5 * gap) / 6;
+
+  card.classList.add('is-resizing');
+  handle.classList.add('is-resizing');
+  document.body.style.cursor     = 'col-resize';
+  document.body.style.userSelect = 'none';
+  if (_sortable) _sortable.option('disabled', true);
+
+  _resizeState = { card, widgetId, grid, constraints, handle, startSpan, startMouseX: e.clientX, colWidth };
+  document.addEventListener('mousemove', _onResizeMove);
+  document.addEventListener('mouseup',   _onResizeEnd, { once: true });
+}
+
+function _onResizeMove(e) {
+  if (!_resizeState) return;
+  const { card, constraints, startSpan, startMouseX, colWidth } = _resizeState;
+  const delta   = e.clientX - startMouseX;
+  const newSpan = Math.max(constraints.min, Math.min(constraints.max,
+    Math.round(startSpan + delta / (colWidth + 16))
+  ));
+  _setColSpan(card, newSpan);
+}
+
+function _onResizeEnd() {
+  if (!_resizeState) return;
+  const { card, handle, widgetId } = _resizeState;
+
+  card.classList.remove('is-resizing');
+  handle.classList.remove('is-resizing');
+  document.body.style.cursor     = '';
+  document.body.style.userSelect = '';
+  if (_isCustomizing && _sortable) _sortable.option('disabled', false);
+  document.removeEventListener('mousemove', _onResizeMove);
+
+  widgetSizes[widgetId] = _getColSpan(card);
+  _saveWidgetSizes();
+  _resizeState = null;
+}
+
+function _initResizeHandles() {
+  const grid = document.getElementById('widgetGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.widget-resize-handle').forEach(handle => {
+    handle.addEventListener('mousedown', _onResizeStart);
+  });
+}
+
 function _renderHiddenPanel() {
   const panel  = document.getElementById('hiddenWidgetsPanel');
   if (!panel) return;
@@ -439,9 +552,10 @@ window._restoreWidget = function (widgetId) {
 
 window._toggleCustomizeMode = function () {
   _isCustomizing = !_isCustomizing;
-  const grid  = document.getElementById('widgetGrid');
-  const btn   = document.getElementById('customizeBtn');
-  const label = document.getElementById('customizeBtnLabel');
+  const grid    = document.getElementById('widgetGrid');
+  const btn     = document.getElementById('customizeBtn');
+  const label   = document.getElementById('customizeBtnLabel');
+  const section = document.getElementById('section-dashboard');
 
   if (_isCustomizing) {
     grid?.setAttribute('data-customizing', '');
@@ -449,6 +563,16 @@ window._toggleCustomizeMode = function () {
     if (label) label.textContent = 'Done';
     if (_sortable) _sortable.option('disabled', false);
     _renderHiddenPanel();
+
+    // Inject dotted grid overlay into the section
+    if (section && !document.getElementById('widgetDotsOverlay')) {
+      const overlay = document.createElement('div');
+      overlay.id        = 'widgetDotsOverlay';
+      overlay.className = 'widget-dots-overlay';
+      section.insertBefore(overlay, section.firstChild);
+      // Double rAF so the browser paints opacity:0 before we transition to 1
+      requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('visible')));
+    }
   } else {
     grid?.removeAttribute('data-customizing');
     if (btn)   btn.classList.remove('is-customizing');
@@ -456,6 +580,13 @@ window._toggleCustomizeMode = function () {
     if (_sortable) _sortable.option('disabled', true);
     const panel = document.getElementById('hiddenWidgetsPanel');
     panel?.classList.add('hidden');
+
+    // Fade out and remove dots overlay
+    const overlay = document.getElementById('widgetDotsOverlay');
+    if (overlay) {
+      overlay.classList.remove('visible');
+      overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
+    }
   }
 };
 
@@ -535,8 +666,10 @@ window._toggleCollapse = function (widgetId) {
 // ── Init once DOM is ready ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   _applyWidgetOrder();
+  _applyWidgetSizes();
   _applyCollapsed();
   _initSortable();
+  _initResizeHandles();
 
   // Cash flow period filter
   document.getElementById('cfFilterBar')?.querySelectorAll('.cf-period-btn').forEach(btn => {
@@ -952,27 +1085,51 @@ function renderMonthPulse() {
   const lstS  = new Date(yr, mo - 1, 1);
   const lstE  = new Date(yr, mo,     0, 23, 59, 59, 999);
 
+  const curMonthExp = filterByRange(allExpenses, { start: curS, end: curE });
   const curInc  = sum(filterByRange(allIncome,   { start: curS, end: curE }));
-  const curExp  = sum(filterByRange(allExpenses,  { start: curS, end: curE }));
+  const curExp  = sum(curMonthExp);
   const lstInc  = sum(filterByRange(allIncome,   { start: lstS, end: lstE }));
   const lstExp  = sum(filterByRange(allExpenses,  { start: lstS, end: lstE }));
 
-  const saved      = curInc - curExp;
-  const rate       = curInc > 0 ? Math.round((saved / curInc) * 100) : 0;
-  const daysInMo   = new Date(yr, mo + 1, 0).getDate();
-  const dayOfMo    = now.getDate();
-  const monthPct   = Math.round((dayOfMo / daysInMo) * 100);
-  const dailyAvg   = dayOfMo > 0 ? curExp / dayOfMo : 0;
-  const projected  = Math.round(dailyAvg * daysInMo);
+  const saved       = curInc - curExp;
+  const rate        = curInc > 0 ? Math.round((saved / curInc) * 100) : 0;
+  const daysInMo    = new Date(yr, mo + 1, 0).getDate();
+  const dayOfMo     = now.getDate();
+  const monthPct    = Math.round((dayOfMo / daysInMo) * 100);
+  const dailyAvg    = dayOfMo > 0 ? curExp / dayOfMo : 0;
+  const projected   = Math.round(dailyAvg * daysInMo);
+  const daysLeft    = Math.max(daysInMo - dayOfMo, 0);
+  const remaining   = curInc - curExp;
+  const dailyLeft   = daysLeft > 0 ? remaining / daysLeft : 0;
+  const projSaved   = curInc - projected;
+  const projSavePct = curInc > 0 ? Math.round((projSaved / curInc) * 100) : 0;
 
-  const isDark   = document.documentElement.classList.contains('dark');
-  const incClr   = isDark ? '#34d399' : '#059669';
-  const expClr   = isDark ? '#f87171' : '#dc2626';
-  const ambrClr  = isDark ? '#fbbf24' : '#d97706';
-  const neutClr  = isDark ? '#a3a3a3' : '#71717a'; /* neutral-400 dark / neutral-500 light — was too dim */
-  const dimClr   = isDark ? '#737373' : '#a1a1aa'; /* was #404040 / #c4c4c4 — nearly invisible */
-  const divClr   = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const mono     = `'DM Mono',monospace`;
+  // Top spending category this month
+  const catMap = {};
+  curMonthExp.forEach(e => {
+    const k = e.categoryGroup || e.category || 'Other';
+    catMap[k] = (catMap[k] || 0) + (e.amount || 0);
+  });
+  const topCatEntry = Object.entries(catMap).sort((a, b) => b[1] - a[1])[0];
+  const topCatName  = topCatEntry ? topCatEntry[0] : null;
+  const topCatAmt   = topCatEntry ? topCatEntry[1] : 0;
+  const topCatPct   = curExp > 0 ? Math.round((topCatAmt / curExp) * 100) : 0;
+
+  // Spend bar: spend as % of income envelope
+  const spendPct  = curInc > 0 ? Math.min((curExp / curInc) * 100, 105) : 0;
+  const overPace  = spendPct > monthPct + 5;
+  const atPace    = spendPct > monthPct - 5;
+  const markerPos = Math.min(Math.max(monthPct, 2), 98);
+
+  const isDark    = document.documentElement.classList.contains('dark');
+  const incClr    = isDark ? '#34d399' : '#059669';
+  const expClr    = isDark ? '#f87171' : '#dc2626';
+  const ambrClr   = isDark ? '#fbbf24' : '#d97706';
+  const neutClr   = isDark ? '#a3a3a3' : '#71717a';
+  const dimClr    = isDark ? '#737373' : '#a1a1aa';
+  const divClr    = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const mono      = `'DM Mono',monospace`;
+  const accentClr = isDark ? '#818cf8' : '#6366f1';
 
   let sTxt, sFg, sBg;
   if      (rate >= 20) { sTxt = 'On Track';    sFg = incClr;  sBg = isDark ? 'rgba(52,211,153,0.1)' : 'rgba(5,150,105,0.09)'; }
@@ -992,11 +1149,11 @@ function renderMonthPulse() {
     return `<span style="color:${clr};font-family:${mono};font-size:10px">${up ? '↑' : '↓'}${Math.abs(pct)}%</span>`;
   };
 
-  const savedClr  = saved >= 0 ? incClr : expClr;
-  const rateClr   = rate >= 20 ? incClr : rate >= 0 ? ambrClr : expClr;
-  const projClr   = (curInc > 0 && projected > curInc) ? expClr
-                  : (curInc > 0 && projected > curInc * 0.85) ? ambrClr : neutClr;
-  const dayStrong = isDark ? '#d4d4d4' : '#3f3f46';
+  const savedClr = saved >= 0 ? incClr : expClr;
+  const rateClr  = rate >= 20 ? incClr : rate >= 0 ? ambrClr : expClr;
+  const barClr   = overPace ? expClr : atPace ? ambrClr : incClr;
+  const projClr  = projSaved < 0 ? expClr : projSaved < curInc * 0.1 ? ambrClr : incClr;
+  const remClr   = remaining <= 0 ? expClr : (dailyLeft < dailyAvg * 0.5 ? ambrClr : neutClr);
 
   if (!curInc && !curExp) {
     el.innerHTML = `<p style="font-size:13px;color:${neutClr}">No data this month yet.
@@ -1004,77 +1161,100 @@ function renderMonthPulse() {
     return;
   }
 
-  // ── Plain-language insight ──────────────────────────────────────────────
-  const daysLeft  = Math.max(daysInMo - dayOfMo, 0);
-  const projSaved = curInc - projected;
-  let insightLine;
-  if (saved < 0 || (curInc > 0 && projected > curInc)) {
-    const overshoot = Math.abs(Math.round(Math.max(projected - curInc, -saved)));
-    insightLine = `At <span style="color:${expClr}">${fmt(Math.round(dailyAvg))}/day</span>, you'll overshoot income by ~<span style="color:${expClr};font-weight:600">${fmt(overshoot)}</span> this month.`;
-  } else if (rate < 20) {
-    const targetCut = daysLeft > 0 ? Math.round((curInc * 0.2 - saved) / daysLeft) : 0;
-    insightLine = targetCut > 0
-      ? `Saving <span style="color:${ambrClr};font-weight:600">${rate}%</span> of income — cut ~<span style="color:${ambrClr}">${fmt(targetCut)}/day</span> to reach 20% by month end.`
-      : `Saving <span style="color:${ambrClr};font-weight:600">${rate}%</span> of income — spending is tight this month.`;
-  } else {
-    const disp    = projSaved > 0 ? projSaved : saved;
-    const dispPct = curInc > 0 ? Math.round((disp / curInc) * 100) : rate;
-    insightLine = `Projected <span style="color:${incClr};font-weight:600">${fmt(disp)}</span> saved (<span style="color:${incClr}">${dispPct}%</span> of income) by month end.`;
-  }
+  // Build optional sections separately to keep template readable
+  const spendBarSection = curInc > 0 ? `
+      <div>
+        <div style="position:relative;height:8px;border-radius:999px;
+                    background:${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'}">
+          <div style="position:absolute;top:0;left:0;height:100%;width:${Math.min(spendPct, 100)}%;
+                      border-radius:999px;background:${barClr};opacity:0.75;transition:width .6s ease"></div>
+          <div style="position:absolute;top:-3px;bottom:-3px;left:${markerPos}%;width:2px;border-radius:1px;
+                      background:${isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.35)'};
+                      transform:translateX(-50%);z-index:1"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:${dimClr};margin-top:5px;font-family:${mono}">
+          <span>₹0</span>
+          <span style="color:${neutClr}">Day ${dayOfMo} of ${daysInMo} · ${monthPct}% elapsed</span>
+          <span>${fmt(curInc)}</span>
+        </div>
+      </div>` : '';
+
+  const dailyLeftLabel = daysLeft > 0 && remaining > 0
+    ? `<span style="color:${remClr};margin-left:8px">${fmt(Math.round(dailyLeft))}/day left</span>`
+    : (daysLeft > 0 && remaining <= 0
+        ? `<span style="color:${expClr};margin-left:8px">over budget</span>`
+        : '');
+
+  const topCatRow = topCatName ? `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:${dimClr}">Top spend</span>
+          <span style="font-size:11px;font-family:${mono};color:${neutClr};max-width:62%;text-align:right;
+                       overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${topCatName}<span style="color:${expClr};margin-left:6px">${fmt(topCatAmt)}</span><span style="color:${dimClr}"> ${topCatPct}%</span>
+          </span>
+        </div>` : '';
+
+  const footerSection = dailyAvg > 0 ? `
+      <div style="border-top:1px solid ${divClr};padding-top:10px;display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:${dimClr}">Daily avg</span>
+          <span style="font-size:11px;font-family:${mono};color:${neutClr}">${fmt(Math.round(dailyAvg))}/day${dailyLeftLabel}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:${dimClr}">Projected</span>
+          <span style="font-size:11px;font-family:${mono}">
+            <span style="color:${expClr}">${fmt(projected)} spend</span><span style="color:${dimClr}"> · </span><span style="color:${projClr}">${projSaved >= 0 ? fmt(projSaved) : '-' + fmt(Math.abs(projSaved))} saved (${Math.abs(projSavePct)}%)</span>
+          </span>
+        </div>
+        ${topCatRow}
+      </div>` : '';
 
   el.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;flex-direction:column;gap:12px;cursor:pointer" onclick="window._navigateTo('expenses')">
 
-      <!-- Status + month label -->
+      <!-- Status badge + month label -->
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;
                      background:${sBg};color:${sFg}">${sTxt}</span>
-        <span style="font-size:10px;font-family:${mono};color:${neutClr}">
-          ${now.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
-        </span>
+        <span style="font-size:10px;font-family:${mono};color:${neutClr}">${now.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</span>
       </div>
 
-      <!-- Income / Spent / Saved -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+      <!-- Hero: Saved + rate -->
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
         <div>
-          <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Income</p>
-          <p style="font-size:13px;font-weight:700;font-family:${mono};color:${incClr};margin:0 0 2px">${fmt(curInc)}</p>
-          <p style="margin:0;line-height:1.4">${mom(curInc, lstInc, true)}</p>
+          <p style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:${dimClr};margin:0 0 3px">Saved this month</p>
+          <p style="font-size:22px;font-weight:800;font-family:${mono};color:${savedClr};margin:0;line-height:1">${fmt(Math.abs(saved))}</p>
         </div>
-        <div>
-          <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Spent</p>
-          <p style="font-size:13px;font-weight:700;font-family:${mono};color:${expClr};margin:0 0 2px">${fmt(curExp)}</p>
-          <p style="margin:0;line-height:1.4">${mom(curExp, lstExp, false)}</p>
-        </div>
-        <div>
-          <p style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:${neutClr};margin:0 0 3px">Saved</p>
-          <p style="font-size:13px;font-weight:700;font-family:${mono};color:${savedClr};margin:0 0 2px">${fmt(Math.abs(saved))}</p>
-          <p style="margin:0;font-size:10px;font-family:${mono};color:${rateClr}">${rate}%</p>
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:${dimClr};margin:0 0 3px">Rate</p>
+          <p style="font-size:22px;font-weight:800;font-family:${mono};color:${rateClr};margin:0;line-height:1">${rate}%</p>
         </div>
       </div>
 
-      <!-- Day progress bar -->
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:${neutClr};margin-bottom:5px">
-          <span>Day <strong style="color:${dayStrong};font-weight:600">${dayOfMo}</strong> of ${daysInMo}</span>
-          <span>${monthPct}% through month</span>
+      <!-- Secondary: Income + Spent -->
+      <div style="display:flex;gap:16px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:10px;color:${dimClr}">Income</span>
+          <span style="font-size:12px;font-weight:600;font-family:${mono};color:${incClr}">${fmt(curInc)}</span>
+          ${mom(curInc, lstInc, true)}
         </div>
-        <div style="height:5px;border-radius:999px;background:${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)'};overflow:hidden">
-          <div style="height:100%;width:${monthPct}%;border-radius:999px;
-                      background:${isDark ? 'rgba(113,113,122,0.55)' : 'rgba(113,113,122,0.4)'};
-                      transition:width .6s ease"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:10px;color:${dimClr}">Spent</span>
+          <span style="font-size:12px;font-weight:600;font-family:${mono};color:${expClr}">${fmt(curExp)}</span>
+          ${mom(curExp, lstExp, false)}
         </div>
       </div>
 
-      <!-- Projection footer -->
-      ${dailyAvg > 0 ? `
-      <div style="padding-top:7px;border-top:1px solid ${divClr}">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px">
-          <span style="color:${neutClr};font-family:${mono}">${fmt(Math.round(dailyAvg))}/day avg</span>
-          <span style="color:${projClr};font-family:${mono};font-weight:500">~${fmt(projected)} projected</span>
-        </div>
-        <p style="margin:0;font-size:13px;color:${neutClr};line-height:1.5">${insightLine}</p>
-      </div>` : ''}
+      <!-- Smart spend-vs-income bar with day-pace marker -->
+      ${spendBarSection}
+
+      <!-- Structured metrics footer -->
+      ${footerSection}
+
+      <!-- Drill-down link -->
+      <div style="display:flex;justify-content:flex-end;margin-top:-4px">
+        <span style="font-size:11px;color:${accentClr};font-weight:500">View details →</span>
+      </div>
 
     </div>`;
 }

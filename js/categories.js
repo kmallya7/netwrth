@@ -50,9 +50,174 @@ const CATEGORY_ICONS = {
   tag:             { label: "Other",           d: `<path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/>` },
 };
 
+// ── Emoji palette ──────────────────────────────────────────────────────────
+const EMOJI_LIST = [
+  // Food & Dining
+  { e:"🍕", k:"pizza food restaurant" },
+  { e:"🍔", k:"burger food fast" },
+  { e:"🥗", k:"salad food healthy" },
+  { e:"🍱", k:"bento lunch food box" },
+  { e:"🍜", k:"noodles ramen food" },
+  { e:"🍳", k:"egg breakfast cooking" },
+  { e:"🥐", k:"croissant bakery breakfast" },
+  { e:"🌮", k:"taco food mexican" },
+  { e:"🥪", k:"sandwich food lunch" },
+  { e:"🍣", k:"sushi food japanese" },
+  { e:"🍦", k:"icecream dessert sweet" },
+  { e:"🧁", k:"cupcake cake dessert" },
+  { e:"🍎", k:"apple fruit food healthy" },
+  { e:"🥦", k:"broccoli vegetable grocery" },
+  { e:"☕", k:"coffee tea hot drink" },
+  { e:"🧃", k:"juice drink beverage" },
+  { e:"🍺", k:"beer drink alcohol bar" },
+  { e:"🍷", k:"wine drink alcohol" },
+  { e:"🥤", k:"cold drink beverage" },
+  { e:"🛒", k:"cart grocery shopping supermarket" },
+  // Transport
+  { e:"🚗", k:"car drive transport" },
+  { e:"🚕", k:"taxi cab ride transport" },
+  { e:"🚌", k:"bus transit public transport" },
+  { e:"🚂", k:"train rail transport" },
+  { e:"✈️", k:"airplane flight travel air" },
+  { e:"🚲", k:"bicycle cycling bike" },
+  { e:"🛵", k:"scooter moped bike" },
+  { e:"🏍️", k:"motorcycle bike transport" },
+  { e:"⛽", k:"fuel petrol gas station" },
+  { e:"🅿️", k:"parking transport" },
+  { e:"🚀", k:"rocket fast" },
+  { e:"🚢", k:"ship cruise boat travel" },
+  { e:"🚁", k:"helicopter air transport" },
+  // Home & Housing
+  { e:"🏠", k:"house home rent" },
+  { e:"🏡", k:"house home garden property" },
+  { e:"🏢", k:"office building business work" },
+  { e:"🔑", k:"key house rent property" },
+  { e:"💡", k:"electricity light utility bulb" },
+  { e:"💧", k:"water drop utility" },
+  { e:"🔧", k:"wrench repair maintenance tool" },
+  { e:"🔨", k:"hammer fix repair" },
+  { e:"🛋️", k:"sofa furniture household couch" },
+  { e:"🧹", k:"broom cleaning household" },
+  { e:"📦", k:"box package delivery parcel" },
+  { e:"🛏️", k:"bed furniture household" },
+  // Health & Wellness
+  { e:"❤️", k:"heart health love wellness" },
+  { e:"💊", k:"pill medicine pharmacy drugs" },
+  { e:"🏥", k:"hospital health doctor medical" },
+  { e:"🩺", k:"stethoscope doctor checkup" },
+  { e:"💉", k:"syringe vaccine injection" },
+  { e:"🦷", k:"tooth dental dentist health" },
+  { e:"👓", k:"glasses vision optician" },
+  { e:"🧴", k:"lotion skincare personal care" },
+  { e:"🏋️", k:"gym workout fitness training" },
+  { e:"🧘", k:"yoga meditation wellness" },
+  { e:"🚴", k:"cycling exercise fitness" },
+  { e:"🏊", k:"swimming exercise fitness" },
+  // Entertainment
+  { e:"🎬", k:"movie film cinema entertainment" },
+  { e:"📺", k:"tv television streaming entertainment" },
+  { e:"🎮", k:"gaming game console entertainment" },
+  { e:"🎵", k:"music note song entertainment" },
+  { e:"🎧", k:"headphones music listen" },
+  { e:"🎭", k:"theater entertainment events show" },
+  { e:"🎟️", k:"ticket event concert show" },
+  { e:"🎨", k:"art painting hobby creative" },
+  { e:"🎲", k:"dice board game fun" },
+  { e:"🎯", k:"target darts sport game" },
+  { e:"📚", k:"books reading library" },
+  { e:"🎡", k:"ferris wheel theme park fun" },
+  // Shopping & Fashion
+  { e:"👗", k:"dress clothing fashion wear" },
+  { e:"👟", k:"shoes sneakers footwear fashion" },
+  { e:"👜", k:"bag purse handbag fashion" },
+  { e:"💄", k:"lipstick makeup beauty cosmetics" },
+  { e:"💍", k:"ring jewelry accessories" },
+  { e:"🕶️", k:"sunglasses fashion accessories cool" },
+  { e:"👒", k:"hat cap fashion accessories" },
+  { e:"🛍️", k:"shopping bags retail store" },
+  { e:"⌚", k:"watch wristwatch time accessories" },
+  // Electronics
+  { e:"📱", k:"phone mobile smartphone electronics" },
+  { e:"💻", k:"laptop computer electronics tech" },
+  { e:"🖥️", k:"monitor desktop computer electronics" },
+  { e:"📷", k:"camera photo electronics" },
+  { e:"🎙️", k:"microphone podcast recording" },
+  // Money & Finance
+  { e:"💰", k:"money bag savings cash" },
+  { e:"💳", k:"credit card payment debit" },
+  { e:"💵", k:"cash dollars money bill" },
+  { e:"🪙", k:"coin money currency" },
+  { e:"💸", k:"money flying expense spending" },
+  { e:"💎", k:"diamond gem luxury premium" },
+  { e:"📈", k:"chart up growth investment stock" },
+  { e:"📉", k:"chart down loss decline" },
+  { e:"🏦", k:"bank savings finance institution" },
+  { e:"💹", k:"chart stock investment trading" },
+  { e:"🏆", k:"trophy bonus reward prize" },
+  { e:"🎁", k:"gift present reward" },
+  { e:"⭐", k:"star bonus reward special" },
+  { e:"🧾", k:"receipt bill expense invoice" },
+  // Work & Business
+  { e:"💼", k:"briefcase work job business" },
+  { e:"📋", k:"clipboard work tasks list" },
+  { e:"✏️", k:"pencil write note edit" },
+  { e:"📧", k:"email work communication" },
+  { e:"📊", k:"bar chart analytics data work" },
+  { e:"📌", k:"pin location marker work" },
+  { e:"🔐", k:"lock security privacy" },
+  { e:"⚙️", k:"settings gear configuration tools" },
+  { e:"📎", k:"paperclip attachment work office" },
+  { e:"🖨️", k:"printer office work" },
+  // Education
+  { e:"🎓", k:"graduation cap education school university" },
+  { e:"📖", k:"book open study education reading" },
+  { e:"🏫", k:"school building education" },
+  { e:"🔬", k:"microscope science research lab" },
+  { e:"🧪", k:"test tube science chemistry" },
+  { e:"🧑‍💻", k:"programmer coding developer tech" },
+  { e:"📐", k:"ruler geometry math education" },
+  // Travel & Leisure
+  { e:"🏖️", k:"beach vacation holiday sun" },
+  { e:"⛰️", k:"mountain trekking travel" },
+  { e:"🗺️", k:"map travel explore navigation" },
+  { e:"🏕️", k:"camping outdoor tent travel" },
+  { e:"🌍", k:"world globe travel international" },
+  { e:"🏨", k:"hotel stay accommodation travel" },
+  { e:"🤿", k:"diving snorkel swimming sports" },
+  { e:"🎿", k:"ski winter sport" },
+  // Nature & Pets
+  { e:"🌱", k:"plant sprout nature garden" },
+  { e:"🌸", k:"flower blossom nature spring" },
+  { e:"🌿", k:"herb leaf nature organic" },
+  { e:"🐾", k:"paw pet animal footprint" },
+  { e:"🐕", k:"dog pet animal" },
+  { e:"🐈", k:"cat pet animal" },
+  { e:"🐠", k:"fish pet aquarium" },
+  // Subscriptions & Services
+  { e:"🌐", k:"internet web online subscription" },
+  { e:"📡", k:"satellite internet telecom signal" },
+  { e:"📰", k:"newspaper news media subscription" },
+  { e:"🔔", k:"bell notification reminder alert" },
+  // Misc
+  { e:"🎉", k:"party celebration event festival" },
+  { e:"🙏", k:"charity donation giving prayer" },
+  { e:"🏛️", k:"government institution tax" },
+  { e:"🔋", k:"battery power energy charge" },
+  { e:"🌞", k:"sun energy solar power" },
+  { e:"🫙", k:"jar container savings" },
+  { e:"📜", k:"scroll document contract legal" },
+  { e:"🔖", k:"bookmark tag label marker" },
+  { e:"🏷️", k:"tag label price other" },
+];
+
 // ── SVG helper ────────────────────────────────────────────────────────────
 function svgIcon(key, size = 18) {
-  const icon = CATEGORY_ICONS[key] || CATEGORY_ICONS["tag"];
+  // If key is not a known SVG icon name, render it as an emoji
+  if (!CATEGORY_ICONS[key]) {
+    const px = Math.round(size * 0.95);
+    return `<span style="font-size:${px}px;line-height:1;display:inline-block;" aria-hidden="true">${key || "🏷️"}</span>`;
+  }
+  const icon = CATEGORY_ICONS[key];
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="${icon.label}">${icon.d}</svg>`;
 }
 export { svgIcon };
@@ -378,21 +543,47 @@ window._initQuickPicker = function(type) {
 };
 
 // ── Icon picker ───────────────────────────────────────────────────────────
+function _renderEmojiGrid(picker, selectedKey, filter) {
+  const q = filter.toLowerCase().trim();
+  const list = q ? EMOJI_LIST.filter(({ k }) => k.includes(q)) : EMOJI_LIST;
+  if (!list.length) {
+    picker.innerHTML = `<p class="text-neutral-500 text-xs p-2 col-span-full">No results for "${filter}"</p>`;
+    return;
+  }
+  picker.innerHTML = list.map(({ e, k }) => {
+    const label = k.split(" ")[0];
+    return `<button type="button" title="${label}" data-icon="${e}"
+      class="emoji-pick-btn${e === selectedKey ? " selected" : ""}"
+      onclick="window._selectCategoryIcon('${e}', this)">${e}</button>`;
+  }).join("");
+}
+
+function _updateIconPreview(key) {
+  const preview = document.getElementById("catIconPreview");
+  if (!preview) return;
+  preview.innerHTML = svgIcon(key, 22);
+}
+
 function renderIconPicker(selectedKey = "tag") {
   const picker = document.getElementById("categoryIconPicker");
   if (!picker) return;
-  picker.innerHTML = Object.entries(CATEGORY_ICONS).map(([key, { label }]) => `
-    <button type="button" title="${label}" data-icon="${key}"
-      class="icon-pick-btn${key === selectedKey ? " selected" : ""}"
-      onclick="window._selectCategoryIcon('${key}', this)">
-      ${svgIcon(key, 18)}
-    </button>`).join("");
+  const searchEl = document.getElementById("catIconSearch");
+  if (searchEl) searchEl.value = "";
+  _renderEmojiGrid(picker, selectedKey, "");
+  _updateIconPreview(selectedKey);
 }
+
+window._filterCatEmojis = function(val) {
+  const picker = document.getElementById("categoryIconPicker");
+  const selectedKey = document.getElementById("selectedCategoryIcon")?.value || "";
+  if (picker) _renderEmojiGrid(picker, selectedKey, val);
+};
 
 window._selectCategoryIcon = function(key, btn) {
   document.getElementById("selectedCategoryIcon").value = key;
-  document.querySelectorAll(".icon-pick-btn").forEach(b => b.classList.remove("selected"));
-  btn.classList.add("selected");
+  document.querySelectorAll(".emoji-pick-btn, .icon-pick-btn").forEach(b => b.classList.remove("selected"));
+  if (btn) btn.classList.add("selected");
+  _updateIconPreview(key);
 };
 
 // ── Populate parent category select in Add Category modal ─────────────────

@@ -648,12 +648,12 @@ html:not(.dark) .modal-sticky-footer { border-top-color: #e4e4e7; }
 .icon-picker-grid {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 3px;
+  gap: 2px;
   padding: 6px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 10px;
-  max-height: 168px;
+  max-height: 220px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.12) transparent;
@@ -663,6 +663,52 @@ html:not(.dark) .icon-picker-grid {
   border-color: #d4d4d8;
 }
 
+/* Selected icon preview box */
+.cat-icon-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+}
+html:not(.dark) .cat-icon-preview {
+  background: rgba(0,0,0,0.04);
+  border-color: #d4d4d8;
+}
+
+/* Emoji pick buttons */
+.emoji-pick-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
+  aspect-ratio: 1;
+}
+.emoji-pick-btn:hover {
+  background-color: rgba(255,255,255,0.09);
+  transform: scale(1.2);
+}
+.emoji-pick-btn.selected {
+  background-color: rgba(16,185,129,0.15);
+  box-shadow: inset 0 0 0 1.5px rgba(16,185,129,0.55);
+  transform: scale(1.05);
+}
+html:not(.dark) .emoji-pick-btn:hover    { background-color: rgba(0,0,0,0.06); }
+html:not(.dark) .emoji-pick-btn.selected { background-color: rgba(5,150,105,0.1); box-shadow: inset 0 0 0 1.5px rgba(5,150,105,0.45); }
+
+/* Legacy SVG icon pick buttons (kept for any fallback renders) */
 .icon-pick-btn {
   display: flex;
   align-items: center;
@@ -1089,6 +1135,265 @@ html:not(.dark) .exp-empty-sub   { color: #a1a1aa; }
 html:not(.dark) .exp-breakdown-row   { border-bottom-color: rgba(0,0,0,0.05); }
 html:not(.dark) .exp-breakdown-meta  { color: #71717a; }
 html:not(.dark) .exp-breakdown-track { background: rgba(0,0,0,0.07) !important; }
+
+/* ── Month Timeline bar ───────────────────────────────────────────────────── */
+.exp-timeline-bar {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.015);
+}
+.exp-timeline-bar .exp-timeline-scroll {
+  flex: 1;
+  min-width: 0;
+}
+.exp-timeline-scroll {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0;
+}
+.exp-timeline-scroll::-webkit-scrollbar { display: none; }
+/* Flex spacers: center items when they fit, collapse when they overflow */
+.exp-timeline-scroll::before,
+.exp-timeline-scroll::after {
+  content: '';
+  flex: 1;
+  min-width: 1.25rem;
+}
+
+.exp-month-item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.875rem 1.125rem 0;
+  cursor: pointer;
+  position: relative;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: #52525b;
+  transition: color 0.15s;
+  min-width: 3.5rem;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.exp-month-item:hover { color: #a1a1aa; }
+.exp-month-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.exp-month-year {
+  font-size: 0.625rem;
+  line-height: 1;
+  margin-bottom: 0.625rem;
+  opacity: 0.7;
+}
+.exp-month-item.is-current { color: #a1a1aa; }
+.exp-month-item.active {
+  color: #fff;
+  border-bottom-color: var(--color-accent, #818cf8);
+}
+.exp-month-item.active .exp-month-name { font-weight: 600; }
+.exp-month-all .exp-month-year { opacity: 0.45; font-style: italic; }
+
+/* Action buttons (search / filter) */
+.exp-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 0 0.625rem;
+  border-left: 1px solid rgba(255,255,255,0.05);
+}
+.exp-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #52525b;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s, background 0.15s;
+}
+.exp-action-btn:hover { color: #a1a1aa; background: rgba(255,255,255,0.05); }
+.exp-action-btn.active { color: var(--color-accent, #818cf8); }
+/* Active-filter indicator dot */
+.exp-action-btn.has-filters::after {
+  content: '';
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent, #818cf8);
+}
+
+html:not(.dark) .exp-timeline-bar  { background: rgba(0,0,0,0.02); border-bottom-color: rgba(0,0,0,0.08); }
+html:not(.dark) .exp-bar-actions   { border-left-color: rgba(0,0,0,0.07); }
+html:not(.dark) .exp-month-item    { color: #a1a1aa; }
+html:not(.dark) .exp-month-item:hover { color: #52525b; }
+html:not(.dark) .exp-month-item.is-current { color: #52525b; }
+html:not(.dark) .exp-month-item.active { color: #18181b; }
+html:not(.dark) .exp-action-btn    { color: #a1a1aa; }
+html:not(.dark) .exp-action-btn:hover { background: rgba(0,0,0,0.05); color: #52525b; }
+
+/* ── Filter Panel ─────────────────────────────────────────────────────────── */
+.exp-filter-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #111;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.exp-filter-panel.open {
+  max-height: 520px;
+  overflow-y: auto;
+}
+.exp-fp-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Category icon cards */
+.exp-fp-cats {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.125rem;
+}
+.exp-fp-cats::-webkit-scrollbar { display: none; }
+.exp-fp-cat {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  padding: 0.25rem;
+  cursor: pointer;
+  width: 72px;
+  transition: border-color 0.15s;
+}
+.exp-fp-cat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: rgba(255,255,255,0.06);
+}
+.exp-fp-cat-all { color: #71717a; }
+.exp-fp-cat-label {
+  font-size: 0.6875rem;
+  color: #71717a;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 68px;
+}
+.exp-fp-cat.active { border-color: var(--color-accent, #818cf8); }
+.exp-fp-cat.active .exp-fp-cat-label { color: var(--color-accent, #818cf8); }
+.exp-fp-cat.active .exp-fp-cat-all   { color: var(--color-accent, #818cf8); }
+
+/* Account chips section */
+.exp-fp-section { display: flex; flex-direction: column; gap: 0.5rem; }
+.exp-fp-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #3f3f46;
+}
+.exp-fp-chips-row { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.exp-fp-chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.09);
+  color: #71717a;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.exp-fp-chip:hover  { border-color: rgba(255,255,255,0.2); color: #d4d4d8; }
+.exp-fp-chip.active {
+  background: var(--color-accent, #818cf8);
+  border-color: var(--color-accent, #818cf8);
+  color: #fff;
+}
+
+/* Search inputs */
+.exp-fp-fields { gap: 0.5rem; }
+.exp-fp-input {
+  width: 100%;
+  padding: 0.5625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #d4d4d4;
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.exp-fp-input:focus { border-color: rgba(var(--color-accent-rgb, 129,140,248), 0.4); }
+.exp-fp-input::placeholder { color: #3f3f46; }
+
+/* Footer buttons */
+.exp-fp-footer { display: flex; gap: 0.75rem; padding-top: 0.25rem; }
+.exp-fp-btn-reset {
+  flex: 1;
+  padding: 0.625rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.exp-fp-btn-reset:hover { background: rgba(255,255,255,0.05); }
+.exp-fp-btn-apply {
+  flex: 2;
+  padding: 0.625rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-accent, #818cf8);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.exp-fp-btn-apply:hover { opacity: 0.85; }
+
+html:not(.dark) .exp-filter-panel     { background: #f7f7f8; border-bottom-color: rgba(0,0,0,0.07); }
+html:not(.dark) .exp-fp-cat-icon      { background: rgba(0,0,0,0.05); }
+html:not(.dark) .exp-fp-cat-all       { color: #71717a; }
+html:not(.dark) .exp-fp-cat-label     { color: #71717a; }
+html:not(.dark) .exp-fp-label         { color: #a1a1aa; }
+html:not(.dark) .exp-fp-chip          { border-color: #e4e4e7; color: #71717a; }
+html:not(.dark) .exp-fp-chip:hover    { border-color: #a1a1aa; color: #3f3f46; }
+html:not(.dark) .exp-fp-input         { border-color: #d4d4d8; background: #fff; color: #18181b; }
+html:not(.dark) .exp-fp-input::placeholder { color: #a1a1aa; }
+html:not(.dark) .exp-fp-btn-reset     { border-color: #d4d4d8; color: #52525b; }
 
 /* ── Search input in filter bar ─────────────────────────────────────────── */
 .exp-search-wrap {
@@ -1545,6 +1850,104 @@ html:not(.dark) .widget-collapse-btn:hover { background: rgba(0,0,0,0.06); color
   z-index: 100;
 }
 html:not(.dark) .widget-ghost { background: rgba(5,150,105,0.04) !important; border-color: rgba(5,150,105,0.28) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WIDGET RESIZE — column-snap handles + dotted grid overlay
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Section needs position:relative so the dots overlay anchors to it */
+#section-dashboard { position: relative; }
+
+/* Cards in the widget grid need position:relative for the handle */
+#widgetGrid > .card { position: relative; }
+
+/* Grid column spans via data attribute — overrides Tailwind lg:col-span-N.
+   Specificity [0,1,1,1] beats Tailwind's [0,0,1,0], no !important needed. */
+@media (min-width: 1024px) {
+  #widgetGrid > [data-widget-span="1"] { grid-column: span 1 / span 1; }
+  #widgetGrid > [data-widget-span="2"] { grid-column: span 2 / span 2; }
+  #widgetGrid > [data-widget-span="3"] { grid-column: span 3 / span 3; }
+  #widgetGrid > [data-widget-span="4"] { grid-column: span 4 / span 4; }
+  #widgetGrid > [data-widget-span="5"] { grid-column: span 5 / span 5; }
+  #widgetGrid > [data-widget-span="6"] { grid-column: span 6 / span 6; }
+}
+
+/* Dots overlay — injected as first child of #section-dashboard, fades in */
+.widget-dots-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(16,185,129,0.2) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+.widget-dots-overlay.visible { opacity: 1; }
+html:not(.dark) .widget-dots-overlay {
+  background-image: radial-gradient(circle, rgba(5,150,105,0.16) 1.5px, transparent 1.5px);
+}
+
+/* Resize handle — sits on the right edge of each widget card */
+.widget-resize-handle {
+  display: none;
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 56px;
+  cursor: col-resize;
+  z-index: 20;
+  align-items: center;
+  justify-content: center;
+}
+.widget-resize-handle::before {
+  content: '';
+  width: 4px;
+  height: 26px;
+  border-radius: 3px;
+  background: rgba(16,185,129,0.45);
+  border: 1px solid rgba(16,185,129,0.6);
+  transition: height 0.18s cubic-bezier(0.34, 1.2, 0.64, 1),
+              background 0.18s ease,
+              box-shadow 0.18s ease;
+}
+.widget-resize-handle:hover::before,
+.widget-resize-handle.is-resizing::before {
+  height: 42px;
+  background: rgba(16,185,129,0.75);
+  box-shadow: 0 0 10px rgba(16,185,129,0.4);
+}
+html:not(.dark) .widget-resize-handle::before {
+  background: rgba(5,150,105,0.4);
+  border-color: rgba(5,150,105,0.55);
+}
+html:not(.dark) .widget-resize-handle:hover::before,
+html:not(.dark) .widget-resize-handle.is-resizing::before {
+  background: rgba(5,150,105,0.65);
+  box-shadow: 0 0 10px rgba(5,150,105,0.3);
+}
+
+/* Show resize handles only in customize mode */
+#widgetGrid[data-customizing] .widget-resize-handle {
+  display: flex;
+  animation: customizeControlIn 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation-delay: 0.08s;
+}
+
+/* Pause jiggle and highlight the card being actively resized */
+#widgetGrid[data-customizing] > .is-resizing {
+  animation: none !important;
+  box-shadow: 0 0 0 1.5px rgba(16,185,129,0.55),
+              0 14px 44px rgba(0,0,0,0.35) !important;
+  z-index: 5;
+}
+html:not(.dark) #widgetGrid[data-customizing] > .is-resizing {
+  box-shadow: 0 0 0 1.5px rgba(5,150,105,0.45),
+              0 8px 24px rgba(0,0,0,0.1) !important;
+}
 
 /* ═══════════════════════════════════════════════════════════
    INSIGHTS SECTION

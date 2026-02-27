@@ -286,6 +286,7 @@
                 <p class="text-sm text-neutral-500">Loading…</p>
               </div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
           <!-- Recent Transactions -->
@@ -309,6 +310,7 @@
                 <p class="text-sm text-neutral-500">No transactions yet.</p>
               </div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
           <!-- Budget Overview -->
@@ -334,6 +336,7 @@
                 <p class="text-sm text-neutral-500">No budgets set.</p>
               </div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
           <!-- Cash Flow Chart -->
@@ -394,6 +397,7 @@
             <div class="widget-body">
               <div id="cashFlowChart" class="mt-2"></div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
           <!-- Investments -->
@@ -419,6 +423,7 @@
                 <p class="text-sm text-neutral-500">Loading…</p>
               </div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
           <!-- Debts -->
@@ -444,6 +449,7 @@
                 <p class="text-sm text-neutral-500">Loading…</p>
               </div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
           <!-- Top Spending -->
@@ -468,6 +474,7 @@
                 <p class="text-sm text-neutral-500">No data.</p>
               </div>
             </div>
+            <div class="widget-resize-handle" title="Drag to resize"></div>
           </div>
 
         </div>
@@ -478,66 +485,87 @@
       </section>
 
       <!-- EXPENSES -->
-      <section id="section-expenses" class="section hidden p-6 space-y-6">
+      <section id="section-expenses" class="section hidden overflow-hidden">
 
-        <!-- Filters -->
-        <div class="flex gap-3 flex-wrap items-center">
-          <select id="expenseMonthFilter" class="select-input">
-            <option>This Month</option>
-            <option>Last Month</option>
-            <option>Last 3 Months</option>
-            <option>All Time</option>
-          </select>
-          <select id="expenseCategoryFilter" class="select-input"
-                  data-populate="expense-categories" data-all-option="true">
-            <option value="">All Categories</option>
-            <option>Food &amp; Dining</option>
-            <option>Transport</option>
-            <option>Shopping</option>
-            <option>Bills &amp; Utilities</option>
-            <option>Health</option>
-            <option>Entertainment</option>
-            <option>Education</option>
-            <option>Other</option>
-          </select>
-          <div class="exp-search-wrap">
-            <svg class="exp-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="text" id="expenseSearch" class="exp-search-input" placeholder="Search expenses…" />
+        <!-- Month Timeline bar -->
+        <div class="exp-timeline-bar">
+          <div class="exp-timeline-scroll" id="expMonthTimeline"><!-- filled by JS --></div>
+          <div class="exp-bar-actions">
+            <button class="exp-action-btn" id="expSearchBtn" title="Search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </button>
+            <button class="exp-action-btn" id="expFilterBtn" title="Filters">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </button>
           </div>
         </div>
 
-        <!-- Summary -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="stat-card"><p class="stat-label">Total Spent</p><p class="stat-value" id="expTotalSpent">₹0</p></div>
-          <div class="stat-card"><p class="stat-label">Avg / Day</p><p class="stat-value" id="expAvgDay">₹0</p></div>
-          <div class="stat-card"><p class="stat-label">Top Category</p><p class="stat-value text-base" id="expTopCategory">—</p></div>
-          <div class="stat-card"><p class="stat-label">Transactions</p><p class="stat-value" id="expTxCount">0</p></div>
+        <!-- Filter panel (slides down) -->
+        <div class="exp-filter-panel" id="expFilterPanel">
+          <div class="exp-fp-body">
+            <!-- Category icon cards -->
+            <div class="exp-fp-cats" id="expFpCats"><!-- filled by JS --></div>
+            <!-- Account chips (if accounts exist) -->
+            <div class="exp-fp-section" id="expFpAccountsWrap" hidden>
+              <p class="exp-fp-label">Account</p>
+              <div class="exp-fp-chips-row" id="expFpAccounts"></div>
+            </div>
+            <!-- Search fields -->
+            <div class="exp-fp-section exp-fp-fields">
+              <input type="text" id="expFpTitle" class="exp-fp-input" placeholder="Title contains…">
+              <input type="text" id="expFpNotes" class="exp-fp-input" placeholder="Notes contain…">
+            </div>
+            <!-- Footer -->
+            <div class="exp-fp-footer">
+              <button class="exp-fp-btn-reset" id="expFpReset">Reset</button>
+              <button class="exp-fp-btn-apply" id="expFpApply">Apply</button>
+            </div>
+          </div>
         </div>
 
-        <!-- Table -->
-        <div class="card overflow-hidden">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-neutral-800 text-neutral-400 text-left">
-                <th class="pb-3 font-medium">Date</th>
-                <th class="pb-3 font-medium">Description</th>
-                <th class="pb-3 font-medium">Category</th>
-                <th class="pb-3 font-medium">Account</th>
-                <th class="pb-3 font-medium text-right">Amount</th>
-                <th class="pb-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody id="expensesTableBody">
-              <tr><td colspan="6" class="py-8 text-center text-neutral-500">No expenses recorded.</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Hidden selects kept for category-populate logic -->
+        <select id="expenseMonthFilter" class="sr-only" aria-hidden="true">
+          <option>This Month</option><option>Last Month</option><option>Last 3 Months</option><option>All Time</option>
+        </select>
+        <select id="expenseCategoryFilter" class="sr-only" aria-hidden="true"
+                data-populate="expense-categories" data-all-option="true">
+          <option value="">All Categories</option>
+        </select>
 
-        <!-- Category Breakdown -->
-        <div class="card" id="expBreakdownCard">
-          <h3 class="card-title mb-3">Spending by Category</h3>
-          <div id="expCategoryBreakdown" class="space-y-2">
-            <p class="text-sm text-neutral-500">No expenses in this period.</p>
+        <div class="p-6 space-y-6">
+          <!-- Summary -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="stat-card"><p class="stat-label">Total Spent</p><p class="stat-value" id="expTotalSpent">₹0</p></div>
+            <div class="stat-card"><p class="stat-label">Avg / Day</p><p class="stat-value" id="expAvgDay">₹0</p></div>
+            <div class="stat-card"><p class="stat-label">Top Category</p><p class="stat-value text-base" id="expTopCategory">—</p></div>
+            <div class="stat-card"><p class="stat-label">Transactions</p><p class="stat-value" id="expTxCount">0</p></div>
+          </div>
+
+          <!-- Table -->
+          <div class="card overflow-hidden">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-neutral-800 text-neutral-400 text-left">
+                  <th class="pb-3 font-medium">Date</th>
+                  <th class="pb-3 font-medium">Description</th>
+                  <th class="pb-3 font-medium">Category</th>
+                  <th class="pb-3 font-medium">Account</th>
+                  <th class="pb-3 font-medium text-right">Amount</th>
+                  <th class="pb-3 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody">
+                <tr><td colspan="6" class="py-8 text-center text-neutral-500">No expenses recorded.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Category Breakdown -->
+          <div class="card" id="expBreakdownCard">
+            <h3 class="card-title mb-3">Spending by Category</h3>
+            <div id="expCategoryBreakdown" class="space-y-2">
+              <p class="text-sm text-neutral-500">No expenses in this period.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -1538,6 +1566,10 @@
           <div class="form-group">
             <label class="form-label">Icon</label>
             <input type="hidden" name="icon" id="selectedCategoryIcon" value="tag" />
+            <div class="flex items-center gap-2 mb-2">
+              <div id="catIconPreview" class="cat-icon-preview shrink-0"></div>
+              <input type="text" id="catIconSearch" class="form-input" placeholder="Search emoji..." autocomplete="off" oninput="window._filterCatEmojis(this.value)" />
+            </div>
             <div id="categoryIconPicker" class="icon-picker-grid">
               <!-- populated by categories.js -->
             </div>
